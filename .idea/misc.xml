@@ -10,6 +10,7 @@
         <option value="$PROJECT_DIR$/parent/ai/ai-monitor/pom.xml" />
         <option value="$PROJECT_DIR$/parent/ai/ai-memory/pom.xml" />
         <option value="$PROJECT_DIR$/parent/ai/ai-harness/pom.xml" />
+        <option value="$PROJECT_DIR$/parent/ai/ai-agent/pom.xml" />
       </list>
     </option>
   </component>

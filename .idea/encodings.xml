@@ -5,9 +5,30 @@
     <file url="file://$PROJECT_DIR$/parent/ai/ai-agent/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-agent/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/ai-core/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-harness/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/ai-harness/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-memory/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/ai-memory/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-monitor/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/ai-monitor/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/parent/ai/ai-sandbox/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/ai-sandbox/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/ai/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/base/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/base/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/core/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/core/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/quant/quant.factor/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/quant/quant.factor/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/quant/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/quant/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/starter/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/parent/starter/src/main/resources" charset="UTF-8" />
   </component>
 </project>
