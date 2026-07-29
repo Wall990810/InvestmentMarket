@@ -11,10 +11,12 @@
         <option value="$PROJECT_DIR$/parent/ai/ai-memory/pom.xml" />
         <option value="$PROJECT_DIR$/parent/ai/ai-harness/pom.xml" />
         <option value="$PROJECT_DIR$/parent/ai/ai-agent/pom.xml" />
+        <option value="$PROJECT_DIR$/im-parent/im-observation/pom.xml" />
+        <option value="$PROJECT_DIR$/im-parent/pom.xml" />
       </list>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" project-jdk-name="25" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" project-jdk-name="26" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

@@ -6,32 +6,53 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="core" />
-        <module name="ai-agent" />
-        <module name="ai-memory" />
-        <module name="common" />
-        <module name="ai-core" />
-        <module name="ai-sandbox" />
-        <module name="ai-harness" />
-        <module name="quant.factor" />
-        <module name="ai-monitor" />
-        <module name="base" />
-      </profile>
-      <profile name="Annotation profile for admin" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
-        </processorPath>
-        <module name="admin" />
+        <module name="im-base" />
+        <module name="im-observation" />
+        <module name="im-common" />
+        <module name="im-core" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="ai" target="26" />
+      <module name="ai-agent" target="26" />
+      <module name="ai-core" target="26" />
+      <module name="base" target="26" />
+      <module name="common" target="26" />
+      <module name="core" target="26" />
+      <module name="im-admin" target="26" />
+      <module name="im-ai-observation" target="26" />
+      <module name="im-starter" target="26" />
+      <module name="quant" target="26" />
+      <module name="quant.factor" target="26" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="admin" options="-parameters" />
+      <module name="ai" options="-parameters" />
+      <module name="ai-agent" options="-parameters" />
+      <module name="ai-core" options="-parameters" />
+      <module name="base" options="-parameters" />
+      <module name="common" options="-parameters" />
+      <module name="core" options="-parameters" />
+      <module name="im-admin" options="-parameters" />
+      <module name="im-ai" options="" />
+      <module name="im-ai-agent" options="" />
+      <module name="im-ai-core" options="" />
+      <module name="im-ai-harness" options="" />
+      <module name="im-ai-memory" options="" />
+      <module name="im-ai-observation" options="-parameters" />
+      <module name="im-ai-sandbox" options="" />
+      <module name="im-base" options="-parameters" />
+      <module name="im-common" options="-parameters" />
+      <module name="im-core" options="-parameters" />
+      <module name="im-observation" options="-parameters" />
+      <module name="im-parent" options="-parameters" />
+      <module name="im-quant" options="-parameters" />
+      <module name="im-quant-factor" options="" />
+      <module name="im-starter" options="-parameters" />
+      <module name="quant" options="-parameters" />
+      <module name="quant.factor" options="-parameters" />
+      <module name="starter" options="-parameters" />
     </option>
   </component>
 </project>
