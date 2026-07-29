@@ -29,6 +29,8 @@
     <properties>
         <java.version>26</java.version>
         <spring-cloud.version>2025.1.2</spring-cloud.version>
+        <ai.framework.version>1.0.0-Beta0-SNAPSHOT</ai.framework.version>
+        <spring.ai.alibaba.version>1.1.2.0</spring.ai.alibaba.version>
     </properties>
     <dependencies>
         <dependency>
@@ -86,6 +88,30 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-zookeeper-discovery</artifactId>
+        </dependency>
+
+        <!-- AI智能体框架模块 -->
+        <dependency>
+            <groupId>org.wall.im</groupId>
+            <artifactId>ai-core</artifactId>
+            <version>${ai.framework.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.wall.im</groupId>
+            <artifactId>ai-agent</artifactId>
+            <version>${ai.framework.version}</version>
+        </dependency>
+
+        <!-- Spring AI Alibaba DashScope（通义千问模型支持） -->
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-agent-framework</artifactId>
+            <version>${spring.ai.alibaba.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba.cloud.ai</groupId>
+            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
+            <version>${spring.ai.alibaba.version}</version>
         </dependency>
 
         <dependency>
@@ -272,5 +298,16 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>

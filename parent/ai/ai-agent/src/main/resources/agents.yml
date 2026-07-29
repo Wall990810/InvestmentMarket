@@ -1,0 +1,69 @@
+# AI Agent Configuration
+# 全局默认配置
+defaults:
+  model:
+    provider: openai
+    name: gpt-4
+    temperature: 0.7
+    maxTokens: 4096
+  memory:
+    shortTermStore: memory
+    longTermStore: memory
+    shortTermMaxEntries: 100
+    longTermMaxEntries: 10000
+    ttlSeconds: 0
+  sandbox:
+    enabled: true
+    networkAccess: false
+    maxExecutionTime: 300
+    maxMemoryMb: 512
+  monitor:
+    enabled: true
+    zipkinEndpoint: http://localhost:9411/api/v2/spans
+    langfuse:
+      enabled: false
+      host: http://localhost:3000
+      publicKey: pk-xxx
+      secretKey: sk-xxx
+  execution:
+    maxConcurrency: 10
+    timeoutSeconds: 60
+    retryCount: 3
+
+# Agent列表
+agents:
+  - name: chat-agent
+    description: "通用对话智能体，支持多轮对话和上下文记忆"
+    type: chat
+    skills:
+      - qa-skill
+    tools:
+      - web-search
+      - calculator
+
+  - name: data-analysis-agent
+    description: "数据分析智能体，擅长数据处理和统计分析"
+    type: task
+    model:
+      provider: openai
+      name: gpt-4
+      temperature: 0.3
+    skills:
+      - data-analysis-skill
+    tools:
+      - python-executor
+      - sql-query
+    memory:
+      shortTermStore: redis
+      longTermStore: db
+      shortTermMaxEntries: 200
+      longTermMaxEntries: 50000
+      ttlSeconds: 86400
+    sandbox:
+      enabled: true
+      workDir: /tmp/ai-sandbox/data-analysis
+      networkAccess: true
+      maxExecutionTime: 600
+    execution:
+      maxConcurrency: 5
+      timeoutSeconds: 120

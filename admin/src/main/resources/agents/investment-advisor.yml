@@ -1,0 +1,88 @@
+# 投资建议智能体配置
+# Investment Advisory Agent Configuration
+
+defaults:
+  model:
+    provider: openai
+    name: gpt-4
+    temperature: 0.7
+    maxTokens: 4096
+  memory:
+    shortTermStore: memory
+    longTermStore: memory
+    shortTermMaxEntries: 100
+    longTermMaxEntries: 10000
+    ttlSeconds: 0
+  sandbox:
+    enabled: true
+    networkAccess: false
+    maxExecutionTime: 300
+    maxMemoryMb: 512
+  monitor:
+    enabled: true
+    zipkinEndpoint: http://localhost:9411/api/v2/spans
+    langfuse:
+      enabled: false
+      host: http://localhost:3000
+      publicKey: pk-lf-xxx
+      secretKey: sk-lf-xxx
+  execution:
+    maxConcurrency: 10
+    timeoutSeconds: 60
+    retryCount: 3
+
+# Agent列表
+agents:
+  - name: investment-advisor
+    description: "投资建议智能体，负责分析市场行情、评估风险并生成个性化投资组合建议"
+    type: task
+    model:
+      provider: openai
+      name: gpt-4
+      temperature: 0.3   # 投资建议需要较低的随机性，保证输出稳定
+      maxTokens: 8192
+    skills:
+      - investment-analysis-skill
+      - portfolio-recommend-skill
+    tools:
+      - market-data-tool
+      - risk-assessment-tool
+    memory:
+      shortTermStore: memory
+      longTermStore: memory
+      shortTermMaxEntries: 200
+      longTermMaxEntries: 50000
+      ttlSeconds: 86400   # 24小时过期
+    sandbox:
+      enabled: true
+      workDir: /tmp/ai-sandbox/investment
+      networkAccess: true  # 需要访问行情数据接口
+      maxExecutionTime: 600
+    monitor:
+      enabled: true
+      langfuse:
+        enabled: true
+        host: http://localhost:3000
+        publicKey: pk-lf-investment
+        secretKey: sk-lf-investment
+    execution:
+      maxConcurrency: 5
+      timeoutSeconds: 120
+      retryCount: 2
+    properties:
+      # 投资建议专属扩展属性
+      riskLevels:
+        - conservative   # 保守型
+        - balanced       # 稳健型
+        - aggressive     # 激进型
+      defaultRiskLevel: balanced
+      supportedMarkets:
+        - A股
+        - 港股
+        - 美股
+      assetCategories:
+        - 股票
+        - 债券
+        - 基金
+        - 货币基金
+        - 黄金
