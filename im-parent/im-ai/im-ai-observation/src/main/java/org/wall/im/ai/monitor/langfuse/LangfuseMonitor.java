@@ -8,6 +8,8 @@ import com.langfuse.client.resources.ingestion.types.CreateObservationEvent;
 import com.langfuse.client.resources.ingestion.types.IngestionEvent;
 import com.langfuse.client.resources.ingestion.types.ObservationBody;
 import com.langfuse.client.resources.ingestion.types.ObservationType;
+import com.langfuse.client.resources.ingestion.types.TraceBody;
+import com.langfuse.client.resources.ingestion.types.TraceEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wall.im.ai.core.model.MonitorConfig;
@@ -16,6 +18,8 @@ import org.wall.im.ai.core.monitor.CustomMetricRegistry;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,10 +69,13 @@ public class LangfuseMonitor implements AgentMonitor {
                 String langfuseTraceId = UUID.randomUUID().toString();
                 traceMapping.put(traceId, langfuseTraceId);
 
-                CreateTraceEvent traceEvent = CreateTraceEvent.builder()
+                String timestamp = OffsetDateTime.now(ZoneOffset.UTC)
+                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+
+                TraceEvent traceEvent = TraceEvent.builder()
                         .id(UUID.randomUUID().toString())
-                        .timestamp(OffsetDateTime.now(ZoneOffset.UTC))
-                        .body(CreateTraceBody.builder()
+                        .timestamp(timestamp)
+                        .body(TraceBody.builder()
                                 .id(langfuseTraceId)
                                 .name("agent." + agentName)
                                 .input(Collections.singletonMap("input", input))
@@ -102,12 +109,13 @@ public class LangfuseMonitor implements AgentMonitor {
                 String langfuseTraceId = traceMapping.remove(traceId);
                 if (langfuseTraceId != null) {
                     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
                     // 创建Generation事件记录输出和用量
                     String generationId = UUID.randomUUID().toString();
                     CreateObservationEvent generationEvent = CreateObservationEvent.builder()
                             .id(UUID.randomUUID().toString())
-                            .timestamp(now)
+                            .timestamp(timestamp)
                             .body(ObservationBody.builder()
                                     .type(ObservationType.GENERATION)
                                     .id(generationId)
@@ -116,9 +124,11 @@ public class LangfuseMonitor implements AgentMonitor {
                                     .input(Collections.singletonMap("agent", agentName))
                                     .output(Collections.singletonMap("output", output))
                                     .usage(Usage.builder()
-                                            .total((long) tokenUsage)
+                                            .input(0)
+                                            .output(0)
+                                            .total(tokenUsage)
                                             .build())
-                                    .startTime(now.minusMillis(costTimeMs))
+                                    .startTime(now.minus(Duration.ofMillis(costTimeMs)))
                                     .endTime(now)
                                     .metadata(Collections.singletonMap("cost_ms", costTimeMs))
                                     .build())
@@ -149,10 +159,11 @@ public class LangfuseMonitor implements AgentMonitor {
             if (langfuseTraceId != null) {
                 try {
                     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
                     CreateObservationEvent errorEvent = CreateObservationEvent.builder()
                             .id(UUID.randomUUID().toString())
-                            .timestamp(now)
+                            .timestamp(timestamp)
                             .body(ObservationBody.builder()
                                     .type(ObservationType.SPAN)
                                     .id(UUID.randomUUID().toString())
@@ -191,6 +202,7 @@ public class LangfuseMonitor implements AgentMonitor {
             if (langfuseTraceId != null) {
                 try {
                     OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
                     Map<String, Object> inputMap = new HashMap<>();
                     inputMap.put("tool", toolName);
@@ -202,7 +214,7 @@ public class LangfuseMonitor implements AgentMonitor {
 
                     CreateObservationEvent toolEvent = CreateObservationEvent.builder()
                             .id(UUID.randomUUID().toString())
-                            .timestamp(now)
+                            .timestamp(timestamp)
                             .body(ObservationBody.builder()
                                     .type(ObservationType.SPAN)
                                     .id(UUID.randomUUID().toString())
@@ -210,7 +222,7 @@ public class LangfuseMonitor implements AgentMonitor {
                                     .name("tool." + toolName)
                                     .input(inputMap)
                                     .output(outputMap)
-                                    .startTime(now.minusMillis(costTimeMs))
+                                    .startTime(now.minus(Duration.ofMillis(costTimeMs)))
                                     .endTime(now)
                                     .metadata(Collections.singletonMap("framework", "wall-ai"))
                                     .build())

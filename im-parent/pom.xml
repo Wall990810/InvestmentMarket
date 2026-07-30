@@ -19,6 +19,7 @@
         <module>im-base</module>
         <module>im-common</module>
         <module>im-core</module>
+        <module>im-guide</module>
         <module>im-quant</module>
         <module>im-starter</module>
     </modules>

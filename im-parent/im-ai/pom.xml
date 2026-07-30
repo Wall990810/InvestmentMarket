@@ -40,12 +40,37 @@
             <!-- Internal modules -->
             <dependency>
                 <groupId>org.wall.im</groupId>
-                <artifactId>ai-core</artifactId>
+                <artifactId>im-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.wall.im</groupId>
-                <artifactId>ai-agent</artifactId>
+                <artifactId>im-ai-agent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wall.im</groupId>
+                <artifactId>im-ai-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wall.im</groupId>
+                <artifactId>im-ai-harness</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wall.im</groupId>
+                <artifactId>im-ai-memory</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wall.im</groupId>
+                <artifactId>im-ai-observation</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.wall.im</groupId>
+                <artifactId>im-ai-sandbox</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -54,30 +79,15 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
 
-            <!-- Micrometer -->
+            <!-- Micrometer (tracing versions managed by Spring Boot BOM) -->
             <dependency>
                 <groupId>io.micrometer</groupId>
                 <artifactId>micrometer-core</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-tracing</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-tracing-bridge-brave</artifactId>
-                <version>${micrometer.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-registry-prometheus</artifactId>
                 <version>${micrometer.version}</version>
             </dependency>
 
@@ -136,13 +146,6 @@
                 <version>${mockito.version}</version>
                 <scope>test</scope>
             </dependency>
-            <dependency>
-                <groupId>io.micrometer</groupId>
-                <artifactId>micrometer-test</artifactId>
-                <version>${micrometer.version}</version>
-                <scope>test</scope>
-            </dependency>
-
             <!-- Langfuse Java SDK -->
             <dependency>
                 <groupId>com.langfuse</groupId>

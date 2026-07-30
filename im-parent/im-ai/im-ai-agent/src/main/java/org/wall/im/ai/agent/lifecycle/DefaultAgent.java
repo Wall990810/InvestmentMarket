@@ -1,5 +1,6 @@
 package org.wall.im.ai.agent.lifecycle;
 
+import com.alibaba.cloud.ai.graph.CompileConfig;
 import com.alibaba.cloud.ai.graph.agent.ReactAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +94,9 @@ public class DefaultAgent implements Agent {
         if (config.getExecution() != null && config.getExecution().getMaxConcurrency() > 0) {
             maxIterations = Math.min(config.getExecution().getMaxConcurrency(), 20);
         }
-        builder.maxIterations(maxIterations);
+        builder.compileConfig(CompileConfig.builder()
+                .recursionLimit(maxIterations)
+                .build());
 
         this.reactAgent = builder.build();
         this.initialized = true;

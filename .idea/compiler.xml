@@ -6,10 +6,27 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="im-base" />
+        <module name="im-ai-agent" />
+        <module name="im-ai-core" />
+        <module name="im-ai-harness" />
         <module name="im-observation" />
+        <module name="im-ai-observation" />
+        <module name="im-ai-sandbox" />
+        <module name="im-ai-memory" />
+        <module name="im-quant-factor" />
+        <module name="im-base" />
         <module name="im-common" />
         <module name="im-core" />
+      </profile>
+      <profile name="Annotation profile for admin" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../../MavenRepository/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$PROJECT_DIR$/../../MavenRepository/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
+        </processorPath>
+        <module name="im-admin" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -19,9 +36,6 @@
       <module name="base" target="26" />
       <module name="common" target="26" />
       <module name="core" target="26" />
-      <module name="im-admin" target="26" />
-      <module name="im-ai-observation" target="26" />
-      <module name="im-starter" target="26" />
       <module name="quant" target="26" />
       <module name="quant.factor" target="26" />
     </bytecodeTargetLevel>
@@ -35,24 +49,24 @@
       <module name="common" options="-parameters" />
       <module name="core" options="-parameters" />
       <module name="im-admin" options="-parameters" />
-      <module name="im-ai" options="" />
-      <module name="im-ai-agent" options="" />
-      <module name="im-ai-core" options="" />
-      <module name="im-ai-harness" options="" />
-      <module name="im-ai-memory" options="" />
+      <module name="im-ai" options="-parameters" />
+      <module name="im-ai-agent" options="-parameters" />
+      <module name="im-ai-core" options="-parameters" />
+      <module name="im-ai-harness" options="-parameters" />
+      <module name="im-ai-memory" options="-parameters" />
       <module name="im-ai-observation" options="-parameters" />
-      <module name="im-ai-sandbox" options="" />
+      <module name="im-ai-sandbox" options="-parameters" />
       <module name="im-base" options="-parameters" />
       <module name="im-common" options="-parameters" />
       <module name="im-core" options="-parameters" />
+      <module name="im-guide" options="-parameters" />
       <module name="im-observation" options="-parameters" />
       <module name="im-parent" options="-parameters" />
       <module name="im-quant" options="-parameters" />
-      <module name="im-quant-factor" options="" />
+      <module name="im-quant-factor" options="-parameters" />
       <module name="im-starter" options="-parameters" />
       <module name="quant" options="-parameters" />
       <module name="quant.factor" options="-parameters" />
-      <module name="starter" options="-parameters" />
     </option>
   </component>
 </project>

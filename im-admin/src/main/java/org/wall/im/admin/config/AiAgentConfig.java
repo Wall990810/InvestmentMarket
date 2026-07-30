@@ -13,6 +13,7 @@ import org.wall.im.ai.agent.lifecycle.MemoryStoreFactory;
 import org.wall.im.ai.agent.lifecycle.SkillRegistry;
 import org.wall.im.ai.agent.lifecycle.ToolRegistry;
 import org.wall.im.ai.agent.registry.AgentRegistry;
+import org.wall.im.ai.agent.skill.MarkdownSkillLoader;
 import org.wall.im.ai.core.config.AgentsDefinition;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
@@ -46,14 +47,35 @@ public class AiAgentConfig {
 
     /**
      * 技能注册表：注册投资建议相关技能
+     * <p>
+     * 支持两种技能来源：
+     * 1. Java代码类（如 InvestmentAnalysisSkill、PortfolioRecommendSkill）
+     * 2. Markdown文件（通过MarkdownSkillLoader从classpath/文件系统加载）
      */
     @Bean
-    public SkillRegistry skillRegistry() {
+    public SkillRegistry skillRegistry(MarkdownSkillLoader markdownSkillLoader) {
         SkillRegistry registry = new SkillRegistry();
+
+        // 注册Java代码实现的技能
         registry.register(new org.wall.im.admin.agent.skill.InvestmentAnalysisSkill());
         registry.register(new org.wall.im.admin.agent.skill.PortfolioRecommendSkill());
-        log.info("已注册投资建议技能: investment-analysis-skill, portfolio-recommend-skill");
+
+        // 从classpath的skills/目录加载Markdown技能
+        int mdCount = markdownSkillLoader.loadFromClasspath("skills");
+        log.info("已注册Java技能: investment-analysis-skill, portfolio-recommend-skill");
+        if (mdCount > 0) {
+            log.info("已从Markdown文件加载 {} 个技能", mdCount);
+        }
+
         return registry;
+    }
+
+    /**
+     * Markdown技能加载器
+     */
+    @Bean
+    public MarkdownSkillLoader markdownSkillLoader(SkillRegistry skillRegistry) {
+        return new MarkdownSkillLoader(skillRegistry);
     }
 
     /**

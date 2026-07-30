@@ -13,6 +13,12 @@
         <option value="$PROJECT_DIR$/parent/ai/ai-agent/pom.xml" />
         <option value="$PROJECT_DIR$/im-parent/im-observation/pom.xml" />
         <option value="$PROJECT_DIR$/im-parent/pom.xml" />
+        <option value="$PROJECT_DIR$/im-admin/pom.xml" />
+      </list>
+    </option>
+    <option name="disabledProfiles">
+      <list>
+        <option value="checkstyle-check" />
       </list>
     </option>
   </component>

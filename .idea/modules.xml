@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/InvestmentMarket.iml" filepath="$PROJECT_DIR$/.idea/InvestmentMarket.iml" />
+      <module fileurl="file://$PROJECT_DIR$/im-parent/im-ai/im-ai-agent/im-ai-agent.iml" filepath="$PROJECT_DIR$/im-parent/im-ai/im-ai-agent/im-ai-agent.iml" />
     </modules>
   </component>
 </project>
