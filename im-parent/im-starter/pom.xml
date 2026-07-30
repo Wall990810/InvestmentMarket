@@ -10,7 +10,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>starter</artifactId>
+    <artifactId>im-starter</artifactId>
     <packaging>pom</packaging>
     <modules>
     </modules>
