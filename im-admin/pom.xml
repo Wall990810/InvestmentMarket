@@ -80,12 +80,12 @@
         <!-- AI智能体框架模块 -->
         <dependency>
             <groupId>org.wall.im</groupId>
-            <artifactId>ai-core</artifactId>
+            <artifactId>im-ai-core</artifactId>
             <version>${ai.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>org.wall.im</groupId>
-            <artifactId>ai-agent</artifactId>
+            <artifactId>im-ai-agent</artifactId>
             <version>${ai.framework.version}</version>
         </dependency>
 
