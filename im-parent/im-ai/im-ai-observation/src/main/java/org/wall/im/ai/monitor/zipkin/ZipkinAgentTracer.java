@@ -14,89 +14,94 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 基于Zipkin Brave的链路追踪实现
- * <p>将Agent调用链路通过Zipkin Brave进行分布式追踪记录</p>
+ * <p>
+ * 将Agent调用链路通过Zipkin Brave进行分布式追踪记录
+ * </p>
  */
 public class ZipkinAgentTracer implements AgentMonitor {
 
-    private static final Logger log = LoggerFactory.getLogger(ZipkinAgentTracer.class);
+	private static final Logger log = LoggerFactory.getLogger(ZipkinAgentTracer.class);
 
-    private final Tracing tracing;
-    private final Tracer tracer;
-    private final Map<String, Span> activeSpans = new ConcurrentHashMap<>();
-    private final AgentMonitor delegate;
+	private final Tracing tracing;
 
-    public ZipkinAgentTracer(Tracing tracing, AgentMonitor delegate) {
-        this.tracing = tracing;
-        this.tracer = tracing.tracer();
-        this.delegate = delegate;
-    }
+	private final Tracer tracer;
 
-    @Override
-    public String traceStart(String agentName, String input) {
-        String traceId = delegate.traceStart(agentName, input);
+	private final Map<String, Span> activeSpans = new ConcurrentHashMap<>();
 
-        Span span = tracer.nextSpan().name("agent." + agentName).start();
-        span.tag("agent.name", agentName);
-        span.tag("agent.input", truncate(input, 500));
-        activeSpans.put(traceId, span);
+	private final AgentMonitor delegate;
 
-        log.debug("Zipkin span started for agent: {}, traceId: {}", agentName, traceId);
-        return traceId;
-    }
+	public ZipkinAgentTracer(Tracing tracing, AgentMonitor delegate) {
+		this.tracing = tracing;
+		this.tracer = tracing.tracer();
+		this.delegate = delegate;
+	}
 
-    @Override
-    public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
-        delegate.traceEnd(traceId, agentName, output, costTimeMs, tokenUsage);
+	@Override
+	public String traceStart(String agentName, String input) {
+		String traceId = delegate.traceStart(agentName, input);
 
-        Span span = activeSpans.remove(traceId);
-        if (span != null) {
-            span.tag("agent.output", truncate(output, 500));
-            span.tag("agent.cost_ms", String.valueOf(costTimeMs));
-            span.tag("agent.token_usage", String.valueOf(tokenUsage));
-            span.finish();
-            log.debug("Zipkin span finished for agent: {}, traceId: {}", agentName, traceId);
-        }
-    }
+		Span span = tracer.nextSpan().name("agent." + agentName).start();
+		span.tag("agent.name", agentName);
+		span.tag("agent.input", truncate(input, 500));
+		activeSpans.put(traceId, span);
 
-    @Override
-    public void traceError(String traceId, String agentName, String error) {
-        delegate.traceError(traceId, agentName, error);
+		log.debug("Zipkin span started for agent: {}, traceId: {}", agentName, traceId);
+		return traceId;
+	}
 
-        Span span = activeSpans.remove(traceId);
-        if (span != null) {
-            span.tag("error", error);
-            span.finish();
-        }
-    }
+	@Override
+	public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
+		delegate.traceEnd(traceId, agentName, output, costTimeMs, tokenUsage);
 
-    @Override
-    public void traceToolCall(String traceId, String toolName, Map<String, Object> parameters,
-                               String result, long costTimeMs) {
-        delegate.traceToolCall(traceId, toolName, parameters, result, costTimeMs);
+		Span span = activeSpans.remove(traceId);
+		if (span != null) {
+			span.tag("agent.output", truncate(output, 500));
+			span.tag("agent.cost_ms", String.valueOf(costTimeMs));
+			span.tag("agent.token_usage", String.valueOf(tokenUsage));
+			span.finish();
+			log.debug("Zipkin span finished for agent: {}, traceId: {}", agentName, traceId);
+		}
+	}
 
-        Span parentSpan = activeSpans.get(traceId);
-        if (parentSpan != null) {
-            Span childSpan = tracer.newChild(parentSpan.context())
-                    .name("tool." + toolName)
-                    .start();
-            childSpan.tag("tool.name", toolName);
-            childSpan.tag("tool.cost_ms", String.valueOf(costTimeMs));
-            childSpan.finish();
-        }
-    }
+	@Override
+	public void traceError(String traceId, String agentName, String error) {
+		delegate.traceError(traceId, agentName, error);
 
-    @Override
-    public void recordMetric(String metricName, double value, Map<String, String> tags) {
-        delegate.recordMetric(metricName, value, tags);
-    }
+		Span span = activeSpans.remove(traceId);
+		if (span != null) {
+			span.tag("error", error);
+			span.finish();
+		}
+	}
 
-    @Override
-    public CustomMetricRegistry getCustomMetricRegistry() {
-        return delegate.getCustomMetricRegistry();
-    }
+	@Override
+	public void traceToolCall(String traceId, String toolName, Map<String, Object> parameters, String result,
+			long costTimeMs) {
+		delegate.traceToolCall(traceId, toolName, parameters, result, costTimeMs);
 
-    private String truncate(String str, int maxLen) {
-        if (str == null) return "";
-        return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
-    }
+		Span parentSpan = activeSpans.get(traceId);
+		if (parentSpan != null) {
+			Span childSpan = tracer.newChild(parentSpan.context()).name("tool." + toolName).start();
+			childSpan.tag("tool.name", toolName);
+			childSpan.tag("tool.cost_ms", String.valueOf(costTimeMs));
+			childSpan.finish();
+		}
+	}
+
+	@Override
+	public void recordMetric(String metricName, double value, Map<String, String> tags) {
+		delegate.recordMetric(metricName, value, tags);
+	}
+
+	@Override
+	public CustomMetricRegistry getCustomMetricRegistry() {
+		return delegate.getCustomMetricRegistry();
+	}
+
+	private String truncate(String str, int maxLen) {
+		if (str == null)
+			return "";
+		return str.length() > maxLen ? str.substring(0, maxLen) + "..." : str;
+	}
+
 }

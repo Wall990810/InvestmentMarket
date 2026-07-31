@@ -7,11 +7,11 @@ import org.wall.im.ai.core.memory.MemoryStore;
  */
 public interface MemoryStoreFactory {
 
-    /**
-     * 根据存储类型创建MemoryStore
-     *
-     * @param storeType 存储类型: memory, redis, db
-     * @return MemoryStore实例
-     */
-    MemoryStore create(String storeType);
+	/**
+	 * 根据存储类型创建MemoryStore
+	 * @param storeType 存储类型: memory, redis, db
+	 * @return MemoryStore实例
+	 */
+	MemoryStore create(String storeType);
+
 }

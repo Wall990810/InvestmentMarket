@@ -9,16 +9,16 @@ import java.util.List;
  */
 public interface PipelineStage {
 
-    /**
-     * 获取阶段名称
-     */
-    String getName();
+	/**
+	 * 获取阶段名称
+	 */
+	String getName();
 
-    /**
-     * 执行处理
-     *
-     * @param messages 输入消息
-     * @return 处理后的消息
-     */
-    List<Message> execute(List<Message> messages);
+	/**
+	 * 执行处理
+	 * @param messages 输入消息
+	 * @return 处理后的消息
+	 */
+	List<Message> execute(List<Message> messages);
+
 }

@@ -5,44 +5,74 @@ package org.wall.im.ai.core.sandbox;
  */
 public class SandboxResult {
 
-    private boolean success;
-    private String output;
-    private String errorOutput;
-    private int exitCode;
-    private long executionTimeMs;
+	private boolean success;
 
-    public static SandboxResult success(String output, long executionTimeMs) {
-        SandboxResult result = new SandboxResult();
-        result.success = true;
-        result.output = output;
-        result.exitCode = 0;
-        result.executionTimeMs = executionTimeMs;
-        return result;
-    }
+	private String output;
 
-    public static SandboxResult failure(String errorOutput, int exitCode, long executionTimeMs) {
-        SandboxResult result = new SandboxResult();
-        result.success = false;
-        result.errorOutput = errorOutput;
-        result.exitCode = exitCode;
-        result.executionTimeMs = executionTimeMs;
-        return result;
-    }
+	private String errorOutput;
 
-    // --- Getters and Setters ---
+	private int exitCode;
 
-    public boolean isSuccess() { return success; }
-    public void setSuccess(boolean success) { this.success = success; }
+	private long executionTimeMs;
 
-    public String getOutput() { return output; }
-    public void setOutput(String output) { this.output = output; }
+	public static SandboxResult success(String output, long executionTimeMs) {
+		SandboxResult result = new SandboxResult();
+		result.success = true;
+		result.output = output;
+		result.exitCode = 0;
+		result.executionTimeMs = executionTimeMs;
+		return result;
+	}
 
-    public String getErrorOutput() { return errorOutput; }
-    public void setErrorOutput(String errorOutput) { this.errorOutput = errorOutput; }
+	public static SandboxResult failure(String errorOutput, int exitCode, long executionTimeMs) {
+		SandboxResult result = new SandboxResult();
+		result.success = false;
+		result.errorOutput = errorOutput;
+		result.exitCode = exitCode;
+		result.executionTimeMs = executionTimeMs;
+		return result;
+	}
 
-    public int getExitCode() { return exitCode; }
-    public void setExitCode(int exitCode) { this.exitCode = exitCode; }
+	// --- Getters and Setters ---
 
-    public long getExecutionTimeMs() { return executionTimeMs; }
-    public void setExecutionTimeMs(long executionTimeMs) { this.executionTimeMs = executionTimeMs; }
+	public boolean isSuccess() {
+		return success;
+	}
+
+	public void setSuccess(boolean success) {
+		this.success = success;
+	}
+
+	public String getOutput() {
+		return output;
+	}
+
+	public void setOutput(String output) {
+		this.output = output;
+	}
+
+	public String getErrorOutput() {
+		return errorOutput;
+	}
+
+	public void setErrorOutput(String errorOutput) {
+		this.errorOutput = errorOutput;
+	}
+
+	public int getExitCode() {
+		return exitCode;
+	}
+
+	public void setExitCode(int exitCode) {
+		this.exitCode = exitCode;
+	}
+
+	public long getExecutionTimeMs() {
+		return executionTimeMs;
+	}
+
+	public void setExecutionTimeMs(long executionTimeMs) {
+		this.executionTimeMs = executionTimeMs;
+	}
+
 }

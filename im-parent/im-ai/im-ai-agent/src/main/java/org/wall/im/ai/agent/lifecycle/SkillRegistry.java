@@ -11,21 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class SkillRegistry {
 
-    private final Map<String, Skill> skills = new ConcurrentHashMap<>();
+	private final Map<String, Skill> skills = new ConcurrentHashMap<>();
 
-    public void register(Skill skill) {
-        skills.put(skill.getName(), skill);
-    }
+	public void register(Skill skill) {
+		skills.put(skill.getName(), skill);
+	}
 
-    public Skill get(String name) {
-        return skills.get(name);
-    }
+	public Skill get(String name) {
+		return skills.get(name);
+	}
 
-    public Collection<Skill> getAll() {
-        return skills.values();
-    }
+	public Collection<Skill> getAll() {
+		return skills.values();
+	}
 
-    public void unregister(String name) {
-        skills.remove(name);
-    }
+	public void unregister(String name) {
+		skills.remove(name);
+	}
+
 }

@@ -384,6 +384,9 @@
                                     <skip>${disable.checks}</skip>
                                     <configLocation>${maven.multiModuleProjectDirectory}/src/checkstyle/checkstyle.xml
                                     </configLocation>
+                                    <propertyExpansion>
+                                        config_loc=${maven.multiModuleProjectDirectory}/src/checkstyle/
+                                    </propertyExpansion>
                                     <headerLocation>
                                         ${maven.multiModuleProjectDirectory}/src/checkstyle/checkstyle-header.txt
                                     </headerLocation>

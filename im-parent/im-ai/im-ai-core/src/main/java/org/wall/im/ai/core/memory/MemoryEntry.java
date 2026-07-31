@@ -9,53 +9,84 @@ import java.util.Map;
  */
 public class MemoryEntry {
 
-    /** 唯一ID */
-    private String id;
+	/** 唯一ID */
+	private String id;
 
-    /** 内容 */
-    private String content;
+	/** 内容 */
+	private String content;
 
-    /** 角色 */
-    private String role;
+	/** 角色 */
+	private String role;
 
-    /** 创建时间 */
-    private Instant createdAt;
+	/** 创建时间 */
+	private Instant createdAt;
 
-    /** 重要性评分 (0.0 ~ 1.0) */
-    private double importance;
+	/** 重要性评分 (0.0 ~ 1.0) */
+	private double importance;
 
-    /** 元数据 */
-    private Map<String, Object> metadata = new HashMap<>();
+	/** 元数据 */
+	private Map<String, Object> metadata = new HashMap<>();
 
-    public MemoryEntry() {
-        this.createdAt = Instant.now();
-    }
+	public MemoryEntry() {
+		this.createdAt = Instant.now();
+	}
 
-    public MemoryEntry(String id, String content, String role) {
-        this.id = id;
-        this.content = content;
-        this.role = role;
-        this.createdAt = Instant.now();
-        this.importance = 0.5;
-    }
+	public MemoryEntry(String id, String content, String role) {
+		this.id = id;
+		this.content = content;
+		this.role = role;
+		this.createdAt = Instant.now();
+		this.importance = 0.5;
+	}
 
-    // --- Getters and Setters ---
+	// --- Getters and Setters ---
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+	public String getId() {
+		return id;
+	}
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public String getRole() { return role; }
-    public void setRole(String role) { this.role = role; }
+	public String getContent() {
+		return content;
+	}
 
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+	public void setContent(String content) {
+		this.content = content;
+	}
 
-    public double getImportance() { return importance; }
-    public void setImportance(double importance) { this.importance = importance; }
+	public String getRole() {
+		return role;
+	}
 
-    public Map<String, Object> getMetadata() { return metadata; }
-    public void setMetadata(Map<String, Object> metadata) { this.metadata = metadata; }
+	public void setRole(String role) {
+		this.role = role;
+	}
+
+	public Instant getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Instant createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public double getImportance() {
+		return importance;
+	}
+
+	public void setImportance(double importance) {
+		this.importance = importance;
+	}
+
+	public Map<String, Object> getMetadata() {
+		return metadata;
+	}
+
+	public void setMetadata(Map<String, Object> metadata) {
+		this.metadata = metadata;
+	}
+
 }

@@ -19,91 +19,97 @@ import static org.mockito.Mockito.*;
 @DisplayName("AgentContext测试")
 class AgentContextTest {
 
-    private Agent mockAgent;
-    private AgentContext context;
+	private Agent mockAgent;
 
-    @BeforeEach
-    void setUp() {
-        mockAgent = mock(Agent.class);
-        context = new AgentContext(mockAgent);
-    }
+	private AgentContext context;
 
-    @Nested
-    @DisplayName("Skill注册测试")
-    class SkillRegistrationTest {
+	@BeforeEach
+	void setUp() {
+		mockAgent = mock(Agent.class);
+		context = new AgentContext(mockAgent);
+	}
 
-        @Test
-        @DisplayName("注册Skill后应能通过名称获取")
-        void registerSkill_shouldBeRetrievable() {
-            Skill skill = mock(Skill.class);
-            when(skill.getName()).thenReturn("qa-skill");
+	@Nested
+	@DisplayName("Skill注册测试")
+	class SkillRegistrationTest {
 
-            context.registerSkill(skill);
+		@Test
+		@DisplayName("注册Skill后应能通过名称获取")
+		void registerSkill_shouldBeRetrievable() {
+			Skill skill = mock(Skill.class);
+			when(skill.getName()).thenReturn("qa-skill");
 
-            assertEquals(skill, context.getSkill("qa-skill"));
-            assertEquals(1, context.getSkills().size());
-        }
+			context.registerSkill(skill);
 
-        @Test
-        @DisplayName("获取未注册的Skill应返回null")
-        void getUnregisteredSkill_shouldReturnNull() {
-            assertNull(context.getSkill("non-existent"));
-        }
-    }
+			assertEquals(skill, context.getSkill("qa-skill"));
+			assertEquals(1, context.getSkills().size());
+		}
 
-    @Nested
-    @DisplayName("Tool注册测试")
-    class ToolRegistrationTest {
+		@Test
+		@DisplayName("获取未注册的Skill应返回null")
+		void getUnregisteredSkill_shouldReturnNull() {
+			assertNull(context.getSkill("non-existent"));
+		}
 
-        @Test
-        @DisplayName("注册Tool后应能通过名称获取")
-        void registerTool_shouldBeRetrievable() {
-            Tool tool = mock(Tool.class);
-            when(tool.getName()).thenReturn("calculator");
+	}
 
-            context.registerTool(tool);
+	@Nested
+	@DisplayName("Tool注册测试")
+	class ToolRegistrationTest {
 
-            assertEquals(tool, context.getTool("calculator"));
-            assertEquals(1, context.getTools().size());
-        }
-    }
+		@Test
+		@DisplayName("注册Tool后应能通过名称获取")
+		void registerTool_shouldBeRetrievable() {
+			Tool tool = mock(Tool.class);
+			when(tool.getName()).thenReturn("calculator");
 
-    @Nested
-    @DisplayName("变量管理测试")
-    class VariableTest {
+			context.registerTool(tool);
 
-        @Test
-        @DisplayName("设置和获取变量")
-        void setAndGetVariable() {
-            context.setVariable("key1", "value1");
-            context.setVariable("key2", 42);
+			assertEquals(tool, context.getTool("calculator"));
+			assertEquals(1, context.getTools().size());
+		}
 
-            assertEquals("value1", context.<String>getVariable("key1"));
-            assertEquals(42, (int) context.<Integer>getVariable("key2"));
-        }
+	}
 
-        @Test
-        @DisplayName("获取不存在的变量应返回null")
-        void getNonExistentVariable_shouldReturnNull() {
-            assertNull(context.getVariable("missing"));
-        }
-    }
+	@Nested
+	@DisplayName("变量管理测试")
+	class VariableTest {
 
-    @Nested
-    @DisplayName("Memory设置测试")
-    class MemoryTest {
+		@Test
+		@DisplayName("设置和获取变量")
+		void setAndGetVariable() {
+			context.setVariable("key1", "value1");
+			context.setVariable("key2", 42);
 
-        @Test
-        @DisplayName("应能设置和获取短期/长期记忆")
-        void shouldSetAndGetMemoryStores() {
-            MemoryStore shortTerm = mock(MemoryStore.class);
-            MemoryStore longTerm = mock(MemoryStore.class);
+			assertEquals("value1", context.<String>getVariable("key1"));
+			assertEquals(42, (int) context.<Integer>getVariable("key2"));
+		}
 
-            context.setShortTermMemory(shortTerm);
-            context.setLongTermMemory(longTerm);
+		@Test
+		@DisplayName("获取不存在的变量应返回null")
+		void getNonExistentVariable_shouldReturnNull() {
+			assertNull(context.getVariable("missing"));
+		}
 
-            assertEquals(shortTerm, context.getShortTermMemory());
-            assertEquals(longTerm, context.getLongTermMemory());
-        }
-    }
+	}
+
+	@Nested
+	@DisplayName("Memory设置测试")
+	class MemoryTest {
+
+		@Test
+		@DisplayName("应能设置和获取短期/长期记忆")
+		void shouldSetAndGetMemoryStores() {
+			MemoryStore shortTerm = mock(MemoryStore.class);
+			MemoryStore longTerm = mock(MemoryStore.class);
+
+			context.setShortTermMemory(shortTerm);
+			context.setLongTermMemory(longTerm);
+
+			assertEquals(shortTerm, context.getShortTermMemory());
+			assertEquals(longTerm, context.getLongTermMemory());
+		}
+
+	}
+
 }

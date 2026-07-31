@@ -8,29 +8,50 @@ import java.util.Map;
  */
 public class ExecutionConfig {
 
-    /** 最大并发数 */
-    private int maxConcurrency = 10;
+	/** 最大并发数 */
+	private int maxConcurrency = 10;
 
-    /** 超时时间(秒) */
-    private int timeoutSeconds = 60;
+	/** 超时时间(秒) */
+	private int timeoutSeconds = 60;
 
-    /** 重试次数 */
-    private int retryCount = 3;
+	/** 重试次数 */
+	private int retryCount = 3;
 
-    /** 环境变量 */
-    private Map<String, String> envVars = new HashMap<>();
+	/** 环境变量 */
+	private Map<String, String> envVars = new HashMap<>();
 
-    // --- Getters and Setters ---
+	// --- Getters and Setters ---
 
-    public int getMaxConcurrency() { return maxConcurrency; }
-    public void setMaxConcurrency(int maxConcurrency) { this.maxConcurrency = maxConcurrency; }
+	public int getMaxConcurrency() {
+		return maxConcurrency;
+	}
 
-    public int getTimeoutSeconds() { return timeoutSeconds; }
-    public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+	public void setMaxConcurrency(int maxConcurrency) {
+		this.maxConcurrency = maxConcurrency;
+	}
 
-    public int getRetryCount() { return retryCount; }
-    public void setRetryCount(int retryCount) { this.retryCount = retryCount; }
+	public int getTimeoutSeconds() {
+		return timeoutSeconds;
+	}
 
-    public Map<String, String> getEnvVars() { return envVars; }
-    public void setEnvVars(Map<String, String> envVars) { this.envVars = envVars; }
+	public void setTimeoutSeconds(int timeoutSeconds) {
+		this.timeoutSeconds = timeoutSeconds;
+	}
+
+	public int getRetryCount() {
+		return retryCount;
+	}
+
+	public void setRetryCount(int retryCount) {
+		this.retryCount = retryCount;
+	}
+
+	public Map<String, String> getEnvVars() {
+		return envVars;
+	}
+
+	public void setEnvVars(Map<String, String> envVars) {
+		this.envVars = envVars;
+	}
+
 }

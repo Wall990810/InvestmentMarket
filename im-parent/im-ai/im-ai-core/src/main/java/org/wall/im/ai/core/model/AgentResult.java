@@ -8,61 +8,97 @@ import java.util.List;
  */
 public class AgentResult {
 
-    /** 是否成功 */
-    private boolean success;
+	/** 是否成功 */
+	private boolean success;
 
-    /** 输出内容 */
-    private String output;
+	/** 输出内容 */
+	private String output;
 
-    /** 执行耗时(毫秒) */
-    private long costTimeMs;
+	/** 执行耗时(毫秒) */
+	private long costTimeMs;
 
-    /** 使用的token数 */
-    private int tokenUsage;
+	/** 使用的token数 */
+	private int tokenUsage;
 
-    /** 消息链路 */
-    private List<Message> messageChain = new ArrayList<>();
+	/** 消息链路 */
+	private List<Message> messageChain = new ArrayList<>();
 
-    /** 错误信息 */
-    private String errorMessage;
+	/** 错误信息 */
+	private String errorMessage;
 
-    /** 关联traceId */
-    private String traceId;
+	/** 关联traceId */
+	private String traceId;
 
-    public static AgentResult success(String output) {
-        AgentResult result = new AgentResult();
-        result.setSuccess(true);
-        result.setOutput(output);
-        return result;
-    }
+	public static AgentResult success(String output) {
+		AgentResult result = new AgentResult();
+		result.setSuccess(true);
+		result.setOutput(output);
+		return result;
+	}
 
-    public static AgentResult failure(String errorMessage) {
-        AgentResult result = new AgentResult();
-        result.setSuccess(false);
-        result.setErrorMessage(errorMessage);
-        return result;
-    }
+	public static AgentResult failure(String errorMessage) {
+		AgentResult result = new AgentResult();
+		result.setSuccess(false);
+		result.setErrorMessage(errorMessage);
+		return result;
+	}
 
-    // --- Getters and Setters ---
+	// --- Getters and Setters ---
 
-    public boolean isSuccess() { return success; }
-    public void setSuccess(boolean success) { this.success = success; }
+	public boolean isSuccess() {
+		return success;
+	}
 
-    public String getOutput() { return output; }
-    public void setOutput(String output) { this.output = output; }
+	public void setSuccess(boolean success) {
+		this.success = success;
+	}
 
-    public long getCostTimeMs() { return costTimeMs; }
-    public void setCostTimeMs(long costTimeMs) { this.costTimeMs = costTimeMs; }
+	public String getOutput() {
+		return output;
+	}
 
-    public int getTokenUsage() { return tokenUsage; }
-    public void setTokenUsage(int tokenUsage) { this.tokenUsage = tokenUsage; }
+	public void setOutput(String output) {
+		this.output = output;
+	}
 
-    public List<Message> getMessageChain() { return messageChain; }
-    public void setMessageChain(List<Message> messageChain) { this.messageChain = messageChain; }
+	public long getCostTimeMs() {
+		return costTimeMs;
+	}
 
-    public String getErrorMessage() { return errorMessage; }
-    public void setErrorMessage(String errorMessage) { this.errorMessage = errorMessage; }
+	public void setCostTimeMs(long costTimeMs) {
+		this.costTimeMs = costTimeMs;
+	}
 
-    public String getTraceId() { return traceId; }
-    public void setTraceId(String traceId) { this.traceId = traceId; }
+	public int getTokenUsage() {
+		return tokenUsage;
+	}
+
+	public void setTokenUsage(int tokenUsage) {
+		this.tokenUsage = tokenUsage;
+	}
+
+	public List<Message> getMessageChain() {
+		return messageChain;
+	}
+
+	public void setMessageChain(List<Message> messageChain) {
+		this.messageChain = messageChain;
+	}
+
+	public String getErrorMessage() {
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
+	}
+
+	public String getTraceId() {
+		return traceId;
+	}
+
+	public void setTraceId(String traceId) {
+		this.traceId = traceId;
+	}
+
 }

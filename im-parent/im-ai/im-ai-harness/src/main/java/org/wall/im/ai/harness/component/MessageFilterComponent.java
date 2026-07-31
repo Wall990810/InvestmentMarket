@@ -8,50 +8,56 @@ import java.util.List;
 
 /**
  * 消息过滤组件
- * <p>对输入消息进行预处理和过滤，如去除空消息、截断过长内容等</p>
+ * <p>
+ * 对输入消息进行预处理和过滤，如去除空消息、截断过长内容等
+ * </p>
  */
 public class MessageFilterComponent implements HarnessComponent {
 
-    private final int maxMessageLength;
-    private final boolean removeEmpty;
+	private final int maxMessageLength;
 
-    public MessageFilterComponent() {
-        this(10000, true);
-    }
+	private final boolean removeEmpty;
 
-    public MessageFilterComponent(int maxMessageLength, boolean removeEmpty) {
-        this.maxMessageLength = maxMessageLength;
-        this.removeEmpty = removeEmpty;
-    }
+	public MessageFilterComponent() {
+		this(10000, true);
+	}
 
-    @Override
-    public String getName() {
-        return "message-filter";
-    }
+	public MessageFilterComponent(int maxMessageLength, boolean removeEmpty) {
+		this.maxMessageLength = maxMessageLength;
+		this.removeEmpty = removeEmpty;
+	}
 
-    @Override
-    public String getDescription() {
-        return "消息预处理和过滤";
-    }
+	@Override
+	public String getName() {
+		return "message-filter";
+	}
 
-    @Override
-    public void initialize() {}
+	@Override
+	public String getDescription() {
+		return "消息预处理和过滤";
+	}
 
-    @Override
-    public List<Message> execute(Agent agent, List<Message> input) {
-        List<Message> filtered = new ArrayList<>();
-        for (Message msg : input) {
-            if (removeEmpty && (msg.getContent() == null || msg.getContent().isBlank())) {
-                continue;
-            }
-            if (msg.getContent() != null && msg.getContent().length() > maxMessageLength) {
-                msg.setContent(msg.getContent().substring(0, maxMessageLength) + "...[truncated]");
-            }
-            filtered.add(msg);
-        }
-        return filtered;
-    }
+	@Override
+	public void initialize() {
+	}
 
-    @Override
-    public void destroy() {}
+	@Override
+	public List<Message> execute(Agent agent, List<Message> input) {
+		List<Message> filtered = new ArrayList<>();
+		for (Message msg : input) {
+			if (removeEmpty && (msg.getContent() == null || msg.getContent().isBlank())) {
+				continue;
+			}
+			if (msg.getContent() != null && msg.getContent().length() > maxMessageLength) {
+				msg.setContent(msg.getContent().substring(0, maxMessageLength) + "...[truncated]");
+			}
+			filtered.add(msg);
+		}
+		return filtered;
+	}
+
+	@Override
+	public void destroy() {
+	}
+
 }

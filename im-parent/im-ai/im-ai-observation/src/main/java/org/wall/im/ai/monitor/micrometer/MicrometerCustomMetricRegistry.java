@@ -15,53 +15,47 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class MicrometerCustomMetricRegistry implements CustomMetricRegistry {
 
-    private final MeterRegistry meterRegistry;
-    private final Map<String, AtomicLong> gaugeValues = new ConcurrentHashMap<>();
+	private final MeterRegistry meterRegistry;
 
-    public MicrometerCustomMetricRegistry(MeterRegistry meterRegistry) {
-        this.meterRegistry = meterRegistry;
-    }
+	private final Map<String, AtomicLong> gaugeValues = new ConcurrentHashMap<>();
 
-    @Override
-    public void registerCounter(String name, String description) {
-        Counter.builder(name)
-                .description(description)
-                .register(meterRegistry);
-    }
+	public MicrometerCustomMetricRegistry(MeterRegistry meterRegistry) {
+		this.meterRegistry = meterRegistry;
+	}
 
-    @Override
-    public void incrementCounter(String name) {
-        Counter.builder(name)
-                .register(meterRegistry)
-                .increment();
-    }
+	@Override
+	public void registerCounter(String name, String description) {
+		Counter.builder(name).description(description).register(meterRegistry);
+	}
 
-    @Override
-    public void registerGauge(String name, String description) {
-        AtomicLong value = new AtomicLong(0);
-        gaugeValues.put(name, value);
-        meterRegistry.gauge(name, value);
-    }
+	@Override
+	public void incrementCounter(String name) {
+		Counter.builder(name).register(meterRegistry).increment();
+	}
 
-    @Override
-    public void setGaugeValue(String name, double value) {
-        AtomicLong gauge = gaugeValues.get(name);
-        if (gauge != null) {
-            gauge.set((long) value);
-        }
-    }
+	@Override
+	public void registerGauge(String name, String description) {
+		AtomicLong value = new AtomicLong(0);
+		gaugeValues.put(name, value);
+		meterRegistry.gauge(name, value);
+	}
 
-    @Override
-    public void registerTimer(String name, String description) {
-        Timer.builder(name)
-                .description(description)
-                .register(meterRegistry);
-    }
+	@Override
+	public void setGaugeValue(String name, double value) {
+		AtomicLong gauge = gaugeValues.get(name);
+		if (gauge != null) {
+			gauge.set((long) value);
+		}
+	}
 
-    @Override
-    public void recordTimer(String name, long durationMs) {
-        Timer.builder(name)
-                .register(meterRegistry)
-                .record(Duration.ofMillis(durationMs));
-    }
+	@Override
+	public void registerTimer(String name, String description) {
+		Timer.builder(name).description(description).register(meterRegistry);
+	}
+
+	@Override
+	public void recordTimer(String name, long durationMs) {
+		Timer.builder(name).register(meterRegistry).record(Duration.ofMillis(durationMs));
+	}
+
 }

@@ -17,67 +17,70 @@ import static org.mockito.Mockito.*;
 @DisplayName("CompositeAgentMonitor测试")
 class CompositeAgentMonitorTest {
 
-    private AgentMonitor primary;
-    private AgentMonitor secondary;
-    private CompositeAgentMonitor composite;
+	private AgentMonitor primary;
 
-    @BeforeEach
-    void setUp() {
-        primary = mock(AgentMonitor.class);
-        secondary = mock(AgentMonitor.class);
-        CustomMetricRegistry mockRegistry = mock(CustomMetricRegistry.class);
-        when(primary.getCustomMetricRegistry()).thenReturn(mockRegistry);
+	private AgentMonitor secondary;
 
-        composite = new CompositeAgentMonitor(primary);
-        composite.addMonitor(secondary);
-    }
+	private CompositeAgentMonitor composite;
 
-    @Test
-    @DisplayName("traceStart应调用primary和所有secondary")
-    void traceStart_shouldCallAllMonitors() {
-        when(primary.traceStart("agent", "input")).thenReturn("trace-1");
+	@BeforeEach
+	void setUp() {
+		primary = mock(AgentMonitor.class);
+		secondary = mock(AgentMonitor.class);
+		CustomMetricRegistry mockRegistry = mock(CustomMetricRegistry.class);
+		when(primary.getCustomMetricRegistry()).thenReturn(mockRegistry);
 
-        String traceId = composite.traceStart("agent", "input");
+		composite = new CompositeAgentMonitor(primary);
+		composite.addMonitor(secondary);
+	}
 
-        assertEquals("trace-1", traceId);
-        verify(primary).traceStart("agent", "input");
-        verify(secondary).traceStart("agent", "input");
-    }
+	@Test
+	@DisplayName("traceStart应调用primary和所有secondary")
+	void traceStart_shouldCallAllMonitors() {
+		when(primary.traceStart("agent", "input")).thenReturn("trace-1");
 
-    @Test
-    @DisplayName("traceEnd应调用所有monitor")
-    void traceEnd_shouldCallAllMonitors() {
-        composite.traceEnd("t1", "agent", "output", 100, 50);
+		String traceId = composite.traceStart("agent", "input");
 
-        verify(primary).traceEnd("t1", "agent", "output", 100, 50);
-        verify(secondary).traceEnd("t1", "agent", "output", 100, 50);
-    }
+		assertEquals("trace-1", traceId);
+		verify(primary).traceStart("agent", "input");
+		verify(secondary).traceStart("agent", "input");
+	}
 
-    @Test
-    @DisplayName("secondary失败不应影响primary")
-    void secondaryFailure_shouldNotAffectPrimary() {
-        when(primary.traceStart("agent", "input")).thenReturn("trace-1");
-        doThrow(new RuntimeException("fail")).when(secondary).traceStart(anyString(), anyString());
+	@Test
+	@DisplayName("traceEnd应调用所有monitor")
+	void traceEnd_shouldCallAllMonitors() {
+		composite.traceEnd("t1", "agent", "output", 100, 50);
 
-        String traceId = composite.traceStart("agent", "input");
+		verify(primary).traceEnd("t1", "agent", "output", 100, 50);
+		verify(secondary).traceEnd("t1", "agent", "output", 100, 50);
+	}
 
-        assertEquals("trace-1", traceId);
-        verify(primary).traceStart("agent", "input");
-    }
+	@Test
+	@DisplayName("secondary失败不应影响primary")
+	void secondaryFailure_shouldNotAffectPrimary() {
+		when(primary.traceStart("agent", "input")).thenReturn("trace-1");
+		doThrow(new RuntimeException("fail")).when(secondary).traceStart(anyString(), anyString());
 
-    @Test
-    @DisplayName("traceError应调用所有monitor")
-    void traceError_shouldCallAllMonitors() {
-        composite.traceError("t1", "agent", "error");
+		String traceId = composite.traceStart("agent", "input");
 
-        verify(primary).traceError("t1", "agent", "error");
-        verify(secondary).traceError("t1", "agent", "error");
-    }
+		assertEquals("trace-1", traceId);
+		verify(primary).traceStart("agent", "input");
+	}
 
-    @Test
-    @DisplayName("getCustomMetricRegistry应委托给primary")
-    void getCustomMetricRegistry_shouldDelegateToPrimary() {
-        assertNotNull(composite.getCustomMetricRegistry());
-        verify(primary).getCustomMetricRegistry();
-    }
+	@Test
+	@DisplayName("traceError应调用所有monitor")
+	void traceError_shouldCallAllMonitors() {
+		composite.traceError("t1", "agent", "error");
+
+		verify(primary).traceError("t1", "agent", "error");
+		verify(secondary).traceError("t1", "agent", "error");
+	}
+
+	@Test
+	@DisplayName("getCustomMetricRegistry应委托给primary")
+	void getCustomMetricRegistry_shouldDelegateToPrimary() {
+		assertNotNull(composite.getCustomMetricRegistry());
+		verify(primary).getCustomMetricRegistry();
+	}
+
 }

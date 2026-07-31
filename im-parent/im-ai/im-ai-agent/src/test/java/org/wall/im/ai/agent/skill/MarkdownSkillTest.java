@@ -11,163 +11,165 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class MarkdownSkillTest {
 
-    private SkillRegistry skillRegistry;
-    private MarkdownSkillLoader loader;
+	private SkillRegistry skillRegistry;
 
-    @BeforeEach
-    void setUp() {
-        skillRegistry = new SkillRegistry();
-        loader = new MarkdownSkillLoader(skillRegistry);
-    }
+	private MarkdownSkillLoader loader;
 
-    @Test
-    void testParseSkillBasic() {
-        String md = """
-                ---
-                name: test-skill
-                description: 测试技能
-                ---
+	@BeforeEach
+	void setUp() {
+		skillRegistry = new SkillRegistry();
+		loader = new MarkdownSkillLoader(skillRegistry);
+	}
 
-                # 测试指令
-                请处理以下输入：{{input}}
-                """;
+	@Test
+	void testParseSkillBasic() {
+		String md = """
+				---
+				name: test-skill
+				description: 测试技能
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "test.md");
-        assertNotNull(skill);
-        assertEquals("test-skill", skill.getName());
-        assertEquals("测试技能", skill.getDescription());
-        assertTrue(skill.getTools().isEmpty());
-    }
+				# 测试指令
+				请处理以下输入：{{input}}
+				""";
 
-    @Test
-    void testParseSkillWithTools() {
-        String md = """
-                ---
-                name: analysis-skill
-                description: 分析技能
-                tools:
-                  - tool-a
-                  - tool-b
-                ---
+		MarkdownSkill skill = loader.parseSkill(md, "test.md");
+		assertNotNull(skill);
+		assertEquals("test-skill", skill.getName());
+		assertEquals("测试技能", skill.getDescription());
+		assertTrue(skill.getTools().isEmpty());
+	}
 
-                # 分析
-                分析 {{input}}
-                """;
+	@Test
+	void testParseSkillWithTools() {
+		String md = """
+				---
+				name: analysis-skill
+				description: 分析技能
+				tools:
+				  - tool-a
+				  - tool-b
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "analysis.md");
-        assertNotNull(skill);
-        assertEquals("analysis-skill", skill.getName());
-        assertEquals(2, skill.getTools().size());
-        assertTrue(skill.getTools().contains("tool-a"));
-        assertTrue(skill.getTools().contains("tool-b"));
-    }
+				# 分析
+				分析 {{input}}
+				""";
 
-    @Test
-    void testExecuteWithVariableSubstitution() {
-        String md = """
-                ---
-                name: echo-skill
-                description: 回显技能
-                ---
+		MarkdownSkill skill = loader.parseSkill(md, "analysis.md");
+		assertNotNull(skill);
+		assertEquals("analysis-skill", skill.getName());
+		assertEquals(2, skill.getTools().size());
+		assertTrue(skill.getTools().contains("tool-a"));
+		assertTrue(skill.getTools().contains("tool-b"));
+	}
 
-                用户输入: {{input}}
-                技能名: {{skillName}}
-                """;
+	@Test
+	void testExecuteWithVariableSubstitution() {
+		String md = """
+				---
+				name: echo-skill
+				description: 回显技能
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "echo.md");
-        assertNotNull(skill);
+				用户输入: {{input}}
+				技能名: {{skillName}}
+				""";
 
-        String result = skill.execute("hello world");
-        assertTrue(result.contains("hello world"));
-        assertTrue(result.contains("echo-skill"));
-        assertFalse(result.contains("{{input}}"));
-        assertFalse(result.contains("{{skillName}}"));
-    }
+		MarkdownSkill skill = loader.parseSkill(md, "echo.md");
+		assertNotNull(skill);
 
-    @Test
-    void testCanExecute() {
-        String md = """
-                ---
-                name: test-skill
-                description: 测试
-                ---
+		String result = skill.execute("hello world");
+		assertTrue(result.contains("hello world"));
+		assertTrue(result.contains("echo-skill"));
+		assertFalse(result.contains("{{input}}"));
+		assertFalse(result.contains("{{skillName}}"));
+	}
 
-                Body
-                """;
+	@Test
+	void testCanExecute() {
+		String md = """
+				---
+				name: test-skill
+				description: 测试
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "test.md");
-        assertNotNull(skill);
-        assertTrue(skill.canExecute("input"));
-        assertFalse(skill.canExecute(null));
-        assertFalse(skill.canExecute(""));
-        assertFalse(skill.canExecute("   "));
-    }
+				Body
+				""";
 
-    @Test
-    void testParseSkillNoFrontmatter() {
-        String md = "# Just a markdown body\n\nNo frontmatter here.";
-        MarkdownSkill skill = loader.parseSkill(md, "no-fm.md");
-        assertNull(skill);
-    }
+		MarkdownSkill skill = loader.parseSkill(md, "test.md");
+		assertNotNull(skill);
+		assertTrue(skill.canExecute("input"));
+		assertFalse(skill.canExecute(null));
+		assertFalse(skill.canExecute(""));
+		assertFalse(skill.canExecute("   "));
+	}
 
-    @Test
-    void testParseSkillMissingName() {
-        String md = """
-                ---
-                description: 无名称技能
-                ---
+	@Test
+	void testParseSkillNoFrontmatter() {
+		String md = "# Just a markdown body\n\nNo frontmatter here.";
+		MarkdownSkill skill = loader.parseSkill(md, "no-fm.md");
+		assertNull(skill);
+	}
 
-                Body
-                """;
+	@Test
+	void testParseSkillMissingName() {
+		String md = """
+				---
+				description: 无名称技能
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "noname.md");
-        assertNull(skill);
-    }
+				Body
+				""";
 
-    @Test
-    void testRegisterAndLoad() {
-        String md = """
-                ---
-                name: registered-skill
-                description: 注册测试
-                ---
+		MarkdownSkill skill = loader.parseSkill(md, "noname.md");
+		assertNull(skill);
+	}
 
-                Body: {{input}}
-                """;
+	@Test
+	void testRegisterAndLoad() {
+		String md = """
+				---
+				name: registered-skill
+				description: 注册测试
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "registered.md");
-        assertNotNull(skill);
-        skillRegistry.register(skill);
+				Body: {{input}}
+				""";
 
-        var retrieved = skillRegistry.get("registered-skill");
-        assertNotNull(retrieved);
-        assertEquals("注册测试", retrieved.getDescription());
-    }
+		MarkdownSkill skill = loader.parseSkill(md, "registered.md");
+		assertNotNull(skill);
+		skillRegistry.register(skill);
 
-    @Test
-    void testExtraMetadata() {
-        String md = """
-                ---
-                name: meta-skill
-                description: 元数据测试
-                version: 2.0
-                author: wall
-                ---
+		var retrieved = skillRegistry.get("registered-skill");
+		assertNotNull(retrieved);
+		assertEquals("注册测试", retrieved.getDescription());
+	}
 
-                Body
-                """;
+	@Test
+	void testExtraMetadata() {
+		String md = """
+				---
+				name: meta-skill
+				description: 元数据测试
+				version: 2.0
+				author: wall
+				---
 
-        MarkdownSkill skill = loader.parseSkill(md, "meta.md");
-        assertNotNull(skill);
-        assertEquals("2.0", skill.getMetadata().get("version"));
-        assertEquals("wall", skill.getMetadata().get("author"));
-    }
+				Body
+				""";
 
-    @Test
-    void testLoadFromClasspath() {
-        int count = loader.loadFromClasspath("skills");
-        assertTrue(count >= 2, "Should load at least 2 skills from classpath skills directory, got: " + count);
-        assertNotNull(skillRegistry.get("investment-analysis-skill"));
-        assertNotNull(skillRegistry.get("portfolio-recommend-skill"));
-    }
+		MarkdownSkill skill = loader.parseSkill(md, "meta.md");
+		assertNotNull(skill);
+		assertEquals("2.0", skill.getMetadata().get("version"));
+		assertEquals("wall", skill.getMetadata().get("author"));
+	}
+
+	@Test
+	void testLoadFromClasspath() {
+		int count = loader.loadFromClasspath("skills");
+		assertTrue(count >= 2, "Should load at least 2 skills from classpath skills directory, got: " + count);
+		assertNotNull(skillRegistry.get("investment-analysis-skill"));
+		assertNotNull(skillRegistry.get("portfolio-recommend-skill"));
+	}
+
 }

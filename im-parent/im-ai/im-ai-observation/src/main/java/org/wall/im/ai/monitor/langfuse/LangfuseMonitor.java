@@ -18,8 +18,7 @@ import org.wall.im.ai.core.monitor.CustomMetricRegistry;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.time.Duration;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,247 +27,247 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Langfuse监控实现
- * <p>基于langfuse-java SDK将Agent调用的trace信息上送至Langfuse平台，用于LLM可观测性分析</p>
+ * <p>
+ * 基于langfuse-java SDK将Agent调用的trace信息上送至Langfuse平台，用于LLM可观测性分析
+ * </p>
  */
 public class LangfuseMonitor implements AgentMonitor {
 
-    private static final Logger log = LoggerFactory.getLogger(LangfuseMonitor.class);
+	private static final Logger log = LoggerFactory.getLogger(LangfuseMonitor.class);
 
-    private final MonitorConfig.LangfuseConfig config;
-    private final LangfuseClient langfuseClient;
-    private final AgentMonitor delegate;
-    private final Map<String, String> traceMapping = new ConcurrentHashMap<>();
+	private final MonitorConfig.LangfuseConfig config;
 
-    public LangfuseMonitor(MonitorConfig.LangfuseConfig config, LangfuseClient langfuseClient, AgentMonitor delegate) {
-        this.config = config;
-        this.langfuseClient = langfuseClient;
-        this.delegate = delegate;
-    }
+	private final LangfuseClient langfuseClient;
 
-    /**
-     * 使用默认配置创建LangfuseMonitor
-     *
-     * @param config   Langfuse配置
-     * @param delegate 委托监控器
-     * @return LangfuseMonitor实例
-     */
-    public static LangfuseMonitor create(MonitorConfig.LangfuseConfig config, AgentMonitor delegate) {
-        LangfuseClient client = LangfuseClient.builder()
-                .url(config.getHost())
-                .credentials(config.getPublicKey(), config.getSecretKey())
-                .build();
-        return new LangfuseMonitor(config, client, delegate);
-    }
+	private final AgentMonitor delegate;
 
-    @Override
-    public String traceStart(String agentName, String input) {
-        String traceId = delegate.traceStart(agentName, input);
+	private final Map<String, String> traceMapping = new ConcurrentHashMap<>();
 
-        if (config.isEnabled() && config.isConfigured()) {
-            try {
-                String langfuseTraceId = UUID.randomUUID().toString();
-                traceMapping.put(traceId, langfuseTraceId);
+	public LangfuseMonitor(MonitorConfig.LangfuseConfig config, LangfuseClient langfuseClient, AgentMonitor delegate) {
+		this.config = config;
+		this.langfuseClient = langfuseClient;
+		this.delegate = delegate;
+	}
 
-                String timestamp = OffsetDateTime.now(ZoneOffset.UTC)
-                        .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+	/**
+	 * 使用默认配置创建LangfuseMonitor
+	 * @param config Langfuse配置
+	 * @param delegate 委托监控器
+	 * @return LangfuseMonitor实例
+	 */
+	public static LangfuseMonitor create(MonitorConfig.LangfuseConfig config, AgentMonitor delegate) {
+		LangfuseClient client = LangfuseClient.builder()
+			.url(config.getHost())
+			.credentials(config.getPublicKey(), config.getSecretKey())
+			.build();
+		return new LangfuseMonitor(config, client, delegate);
+	}
 
-                TraceEvent traceEvent = TraceEvent.builder()
-                        .id(UUID.randomUUID().toString())
-                        .timestamp(timestamp)
-                        .body(TraceBody.builder()
-                                .id(langfuseTraceId)
-                                .name("agent." + agentName)
-                                .input(Collections.singletonMap("input", input))
-                                .metadata(Collections.singletonMap("framework", "wall-ai"))
-                                .build())
-                        .build();
+	@Override
+	public String traceStart(String agentName, String input) {
+		String traceId = delegate.traceStart(agentName, input);
 
-                IngestionRequest request = IngestionRequest.builder()
-                        .addBatch(IngestionEvent.traceCreate(traceEvent))
-                        .build();
+		if (config.isEnabled() && config.isConfigured()) {
+			try {
+				String langfuseTraceId = UUID.randomUUID().toString();
+				traceMapping.put(traceId, langfuseTraceId);
 
-                langfuseClient.ingestion().batch(request);
+				TraceEvent traceEvent = TraceEvent.builder()
+					.id(UUID.randomUUID().toString())
+					.timestamp(OffsetDateTime.now(ZoneOffset.UTC).toString())
+					.body(TraceBody.builder()
+						.id(langfuseTraceId)
+						.name("agent." + agentName)
+						.input(Collections.singletonMap("input", input))
+						.metadata(Collections.singletonMap("framework", "wall-ai"))
+						.build())
+					.build();
 
-                if (config.isDebug()) {
-                    log.debug("Sent trace start to Langfuse: traceId={}, agent={}", langfuseTraceId, agentName);
-                }
-            } catch (Exception e) {
-                log.warn("Failed to send trace to Langfuse: {}", e.getMessage());
-            }
-        }
+				IngestionRequest request = IngestionRequest.builder()
+					.addBatch(IngestionEvent.traceCreate(traceEvent))
+					.build();
 
-        return traceId;
-    }
+				langfuseClient.ingestion().batch(request);
 
-    @Override
-    public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
-        delegate.traceEnd(traceId, agentName, output, costTimeMs, tokenUsage);
+				if (config.isDebug()) {
+					log.debug("Sent trace start to Langfuse: traceId={}, agent={}", langfuseTraceId, agentName);
+				}
+			}
+			catch (Exception e) {
+				log.warn("Failed to send trace to Langfuse: {}", e.getMessage());
+			}
+		}
 
-        if (config.isEnabled() && config.isConfigured()) {
-            try {
-                String langfuseTraceId = traceMapping.remove(traceId);
-                if (langfuseTraceId != null) {
-                    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+		return traceId;
+	}
 
-                    // 创建Generation事件记录输出和用量
-                    String generationId = UUID.randomUUID().toString();
-                    CreateObservationEvent generationEvent = CreateObservationEvent.builder()
-                            .id(UUID.randomUUID().toString())
-                            .timestamp(timestamp)
-                            .body(ObservationBody.builder()
-                                    .type(ObservationType.GENERATION)
-                                    .id(generationId)
-                                    .traceId(langfuseTraceId)
-                                    .name("agent." + agentName + ".generation")
-                                    .input(Collections.singletonMap("agent", agentName))
-                                    .output(Collections.singletonMap("output", output))
-                                    .usage(Usage.builder()
-                                            .input(0)
-                                            .output(0)
-                                            .total(tokenUsage)
-                                            .build())
-                                    .startTime(now.minus(Duration.ofMillis(costTimeMs)))
-                                    .endTime(now)
-                                    .metadata(Collections.singletonMap("cost_ms", costTimeMs))
-                                    .build())
-                            .build();
+	@Override
+	public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
+		delegate.traceEnd(traceId, agentName, output, costTimeMs, tokenUsage);
 
-                    IngestionRequest request = IngestionRequest.builder()
-                            .addBatch(IngestionEvent.observationCreate(generationEvent))
-                            .build();
+		if (config.isEnabled() && config.isConfigured()) {
+			try {
+				String langfuseTraceId = traceMapping.remove(traceId);
+				if (langfuseTraceId != null) {
+					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
-                    langfuseClient.ingestion().batch(request);
+					// 创建Generation事件记录输出和用量
+					String generationId = UUID.randomUUID().toString();
+					CreateObservationEvent generationEvent = CreateObservationEvent.builder()
+						.id(UUID.randomUUID().toString())
+						.timestamp(now.toString())
+						.body(ObservationBody.builder()
+							.type(ObservationType.GENERATION)
+							.id(generationId)
+							.traceId(langfuseTraceId)
+							.name("agent." + agentName + ".generation")
+							.input(Collections.singletonMap("agent", agentName))
+							.output(Collections.singletonMap("output", output))
+							.usage(Usage.builder().input(tokenUsage).output(0).total(tokenUsage).build())
+							.startTime(now.minus(costTimeMs, ChronoUnit.MILLIS))
+							.endTime(now)
+							.metadata(Collections.singletonMap("cost_ms", costTimeMs))
+							.build())
+						.build();
 
-                    if (config.isDebug()) {
-                        log.debug("Sent trace end to Langfuse: traceId={}, costMs={}", langfuseTraceId, costTimeMs);
-                    }
-                }
-            } catch (Exception e) {
-                log.warn("Failed to send trace end to Langfuse: {}", e.getMessage());
-            }
-        }
-    }
+					IngestionRequest request = IngestionRequest.builder()
+						.addBatch(IngestionEvent.observationCreate(generationEvent))
+						.build();
 
-    @Override
-    public void traceError(String traceId, String agentName, String error) {
-        delegate.traceError(traceId, agentName, error);
+					langfuseClient.ingestion().batch(request);
 
-        if (config.isEnabled() && config.isConfigured()) {
-            String langfuseTraceId = traceMapping.remove(traceId);
-            if (langfuseTraceId != null) {
-                try {
-                    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+					if (config.isDebug()) {
+						log.debug("Sent trace end to Langfuse: traceId={}, costMs={}", langfuseTraceId, costTimeMs);
+					}
+				}
+			}
+			catch (Exception e) {
+				log.warn("Failed to send trace end to Langfuse: {}", e.getMessage());
+			}
+		}
+	}
 
-                    CreateObservationEvent errorEvent = CreateObservationEvent.builder()
-                            .id(UUID.randomUUID().toString())
-                            .timestamp(timestamp)
-                            .body(ObservationBody.builder()
-                                    .type(ObservationType.SPAN)
-                                    .id(UUID.randomUUID().toString())
-                                    .traceId(langfuseTraceId)
-                                    .name("agent." + agentName + ".error")
-                                    .output(Collections.singletonMap("error", error))
-                                    .level(ObservationLevel.ERROR)
-                                    .startTime(now)
-                                    .endTime(now)
-                                    .build())
-                            .build();
+	@Override
+	public void traceError(String traceId, String agentName, String error) {
+		delegate.traceError(traceId, agentName, error);
 
-                    IngestionRequest request = IngestionRequest.builder()
-                            .addBatch(IngestionEvent.observationCreate(errorEvent))
-                            .build();
+		if (config.isEnabled() && config.isConfigured()) {
+			String langfuseTraceId = traceMapping.remove(traceId);
+			if (langfuseTraceId != null) {
+				try {
+					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
-                    langfuseClient.ingestion().batch(request);
+					CreateObservationEvent errorEvent = CreateObservationEvent.builder()
+						.id(UUID.randomUUID().toString())
+						.timestamp(now.toString())
+						.body(ObservationBody.builder()
+							.type(ObservationType.SPAN)
+							.id(UUID.randomUUID().toString())
+							.traceId(langfuseTraceId)
+							.name("agent." + agentName + ".error")
+							.output(Collections.singletonMap("error", error))
+							.level(ObservationLevel.ERROR)
+							.startTime(now)
+							.endTime(now)
+							.build())
+						.build();
 
-                    if (config.isDebug()) {
-                        log.debug("Sent trace error to Langfuse: traceId={}", langfuseTraceId);
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to send error to Langfuse: {}", e.getMessage());
-                }
-            }
-        }
-    }
+					IngestionRequest request = IngestionRequest.builder()
+						.addBatch(IngestionEvent.observationCreate(errorEvent))
+						.build();
 
-    @Override
-    public void traceToolCall(String traceId, String toolName, Map<String, Object> parameters,
-                              String result, long costTimeMs) {
-        delegate.traceToolCall(traceId, toolName, parameters, result, costTimeMs);
+					langfuseClient.ingestion().batch(request);
 
-        if (config.isEnabled() && config.isConfigured()) {
-            String langfuseTraceId = traceMapping.get(traceId);
-            if (langfuseTraceId != null) {
-                try {
-                    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-                    String timestamp = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+					if (config.isDebug()) {
+						log.debug("Sent trace error to Langfuse: traceId={}", langfuseTraceId);
+					}
+				}
+				catch (Exception e) {
+					log.warn("Failed to send error to Langfuse: {}", e.getMessage());
+				}
+			}
+		}
+	}
 
-                    Map<String, Object> inputMap = new HashMap<>();
-                    inputMap.put("tool", toolName);
-                    inputMap.put("parameters", parameters);
+	@Override
+	public void traceToolCall(String traceId, String toolName, Map<String, Object> parameters, String result,
+			long costTimeMs) {
+		delegate.traceToolCall(traceId, toolName, parameters, result, costTimeMs);
 
-                    Map<String, Object> outputMap = new HashMap<>();
-                    outputMap.put("result", result);
-                    outputMap.put("cost_ms", costTimeMs);
+		if (config.isEnabled() && config.isConfigured()) {
+			String langfuseTraceId = traceMapping.get(traceId);
+			if (langfuseTraceId != null) {
+				try {
+					OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 
-                    CreateObservationEvent toolEvent = CreateObservationEvent.builder()
-                            .id(UUID.randomUUID().toString())
-                            .timestamp(timestamp)
-                            .body(ObservationBody.builder()
-                                    .type(ObservationType.SPAN)
-                                    .id(UUID.randomUUID().toString())
-                                    .traceId(langfuseTraceId)
-                                    .name("tool." + toolName)
-                                    .input(inputMap)
-                                    .output(outputMap)
-                                    .startTime(now.minus(Duration.ofMillis(costTimeMs)))
-                                    .endTime(now)
-                                    .metadata(Collections.singletonMap("framework", "wall-ai"))
-                                    .build())
-                            .build();
+					Map<String, Object> inputMap = new HashMap<>();
+					inputMap.put("tool", toolName);
+					inputMap.put("parameters", parameters);
 
-                    IngestionRequest request = IngestionRequest.builder()
-                            .addBatch(IngestionEvent.observationCreate(toolEvent))
-                            .build();
+					Map<String, Object> outputMap = new HashMap<>();
+					outputMap.put("result", result);
+					outputMap.put("cost_ms", costTimeMs);
 
-                    langfuseClient.ingestion().batch(request);
+					CreateObservationEvent toolEvent = CreateObservationEvent.builder()
+						.id(UUID.randomUUID().toString())
+						.timestamp(now.toString())
+						.body(ObservationBody.builder()
+							.type(ObservationType.SPAN)
+							.id(UUID.randomUUID().toString())
+							.traceId(langfuseTraceId)
+							.name("tool." + toolName)
+							.input(inputMap)
+							.output(outputMap)
+							.startTime(now.minus(costTimeMs, ChronoUnit.MILLIS))
+							.endTime(now)
+							.metadata(Collections.singletonMap("framework", "wall-ai"))
+							.build())
+						.build();
 
-                    if (config.isDebug()) {
-                        log.debug("Sent tool call to Langfuse: traceId={}, tool={}", langfuseTraceId, toolName);
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to send tool call to Langfuse: {}", e.getMessage());
-                }
-            }
-        }
-    }
+					IngestionRequest request = IngestionRequest.builder()
+						.addBatch(IngestionEvent.observationCreate(toolEvent))
+						.build();
 
-    @Override
-    public void recordMetric(String metricName, double value, Map<String, String> tags) {
-        delegate.recordMetric(metricName, value, tags);
-    }
+					langfuseClient.ingestion().batch(request);
 
-    @Override
-    public CustomMetricRegistry getCustomMetricRegistry() {
-        return delegate.getCustomMetricRegistry();
-    }
+					if (config.isDebug()) {
+						log.debug("Sent tool call to Langfuse: traceId={}, tool={}", langfuseTraceId, toolName);
+					}
+				}
+				catch (Exception e) {
+					log.warn("Failed to send tool call to Langfuse: {}", e.getMessage());
+				}
+			}
+		}
+	}
 
-    /**
-     * 获取底层LangfuseClient实例
-     */
-    public LangfuseClient getLangfuseClient() {
-        return langfuseClient;
-    }
+	@Override
+	public void recordMetric(String metricName, double value, Map<String, String> tags) {
+		delegate.recordMetric(metricName, value, tags);
+	}
 
-    /**
-     * 刷新所有待发送的数据到Langfuse
-     */
-    public void flush() {
-        try {
-            log.debug("Flushing Langfuse monitor data");
-        } catch (Exception e) {
-            log.warn("Failed to flush Langfuse data: {}", e.getMessage());
-        }
-    }
+	@Override
+	public CustomMetricRegistry getCustomMetricRegistry() {
+		return delegate.getCustomMetricRegistry();
+	}
+
+	/**
+	 * 获取底层LangfuseClient实例
+	 */
+	public LangfuseClient getLangfuseClient() {
+		return langfuseClient;
+	}
+
+	/**
+	 * 刷新所有待发送的数据到Langfuse
+	 */
+	public void flush() {
+		try {
+			log.debug("Flushing Langfuse monitor data");
+		}
+		catch (Exception e) {
+			log.warn("Failed to flush Langfuse data: {}", e.getMessage());
+		}
+	}
+
 }

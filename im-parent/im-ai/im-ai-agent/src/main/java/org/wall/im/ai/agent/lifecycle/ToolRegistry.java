@@ -11,21 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ToolRegistry {
 
-    private final Map<String, Tool> tools = new ConcurrentHashMap<>();
+	private final Map<String, Tool> tools = new ConcurrentHashMap<>();
 
-    public void register(Tool tool) {
-        tools.put(tool.getName(), tool);
-    }
+	public void register(Tool tool) {
+		tools.put(tool.getName(), tool);
+	}
 
-    public Tool get(String name) {
-        return tools.get(name);
-    }
+	public Tool get(String name) {
+		return tools.get(name);
+	}
 
-    public Collection<Tool> getAll() {
-        return tools.values();
-    }
+	public Collection<Tool> getAll() {
+		return tools.values();
+	}
 
-    public void unregister(String name) {
-        tools.remove(name);
-    }
+	public void unregister(String name) {
+		tools.remove(name);
+	}
+
 }

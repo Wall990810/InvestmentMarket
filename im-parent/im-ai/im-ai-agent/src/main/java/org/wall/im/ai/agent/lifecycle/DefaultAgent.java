@@ -29,169 +29,167 @@ import java.util.UUID;
  */
 public class DefaultAgent implements Agent {
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultAgent.class);
+	private static final Logger log = LoggerFactory.getLogger(DefaultAgent.class);
 
-    private final AgentConfig config;
-    private final AgentContext context;
-    private final ChatModel chatModel;
-    private final List<Tool> agentTools;
+	private final AgentConfig config;
 
-    private ReactAgent reactAgent;
-    private volatile boolean initialized = false;
+	private final AgentContext context;
 
-    /**
-     * 创建DefaultAgent
-     *
-     * @param config    Agent配置
-     * @param chatModel Spring AI ChatModel实例（如DashScopeChatModel）
-     * @param tools     该Agent可用的工具列表
-     */
-    public DefaultAgent(AgentConfig config, ChatModel chatModel, List<Tool> tools) {
-        this.config = config;
-        this.context = new AgentContext(this);
-        this.chatModel = chatModel;
-        this.agentTools = tools != null ? new ArrayList<>(tools) : new ArrayList<>();
-    }
+	private final ChatModel chatModel;
 
-    @Override
-    public String getName() {
-        return config.getName();
-    }
+	private final List<Tool> agentTools;
 
-    @Override
-    public AgentConfig getConfig() {
-        return config;
-    }
+	private ReactAgent reactAgent;
 
-    @Override
-    public void initialize() {
-        if (initialized) {
-            log.warn("Agent '{}' already initialized", getName());
-            return;
-        }
-        log.info("Initializing ReactAgent: {}", getName());
+	private volatile boolean initialized = false;
 
-        // 构建系统提示词：优先使用description，兜底使用name
-        String systemPrompt = config.getDescription() != null
-                ? config.getDescription()
-                : "You are a helpful AI assistant named " + getName() + ".";
+	/**
+	 * 创建DefaultAgent
+	 * @param config Agent配置
+	 * @param chatModel Spring AI ChatModel实例（如DashScopeChatModel）
+	 * @param tools 该Agent可用的工具列表
+	 */
+	public DefaultAgent(AgentConfig config, ChatModel chatModel, List<Tool> tools) {
+		this.config = config;
+		this.context = new AgentContext(this);
+		this.chatModel = chatModel;
+		this.agentTools = tools != null ? new ArrayList<>(tools) : new ArrayList<>();
+	}
 
-        // 构建ReactAgent
-        var builder = ReactAgent.builder()
-                .name(getName())
-                .model(chatModel)
-                .instruction(systemPrompt);
+	@Override
+	public String getName() {
+		return config.getName();
+	}
 
-        // 注册工具：将自定义Tool适配为Spring AI的ToolCallback
-        if (!agentTools.isEmpty()) {
-            ToolCallback[] toolCallbacks = org.wall.im.ai.agent.adapter.SpringAiToolAdapter
-                    .toToolCallbacks(agentTools.toArray(new Tool[0]));
-            builder.tools(toolCallbacks);
-        }
+	@Override
+	public AgentConfig getConfig() {
+		return config;
+	}
 
-        // 设置最大迭代次数（从execution配置中获取，默认10）
-        int maxIterations = 10;
-        if (config.getExecution() != null && config.getExecution().getMaxConcurrency() > 0) {
-            maxIterations = Math.min(config.getExecution().getMaxConcurrency(), 20);
-        }
-        builder.compileConfig(CompileConfig.builder()
-                .recursionLimit(maxIterations)
-                .build());
+	@Override
+	public void initialize() {
+		if (initialized) {
+			log.warn("Agent '{}' already initialized", getName());
+			return;
+		}
+		log.info("Initializing ReactAgent: {}", getName());
 
-        this.reactAgent = builder.build();
-        this.initialized = true;
-        log.info("ReactAgent '{}' initialized successfully with {} tools", getName(), agentTools.size());
-    }
+		// 构建系统提示词：优先使用description，兜底使用name
+		String systemPrompt = config.getDescription() != null ? config.getDescription()
+				: "You are a helpful AI assistant named " + getName() + ".";
 
-    @Override
-    public String chat(String input) {
-        if (!initialized) {
-            throw new IllegalStateException("Agent not initialized: " + getName());
-        }
+		// 构建ReactAgent
+		var builder = ReactAgent.builder().name(getName()).model(chatModel).instruction(systemPrompt);
 
-        // 存储到短期记忆
-        if (context.getShortTermMemory() != null) {
-            context.getShortTermMemory().store(
-                    getName() + ":conversation",
-                    new MemoryEntry(UUID.randomUUID().toString(), input, "user")
-            );
-        }
+		// 注册工具：将自定义Tool适配为Spring AI的ToolCallback
+		if (!agentTools.isEmpty()) {
+			ToolCallback[] toolCallbacks = org.wall.im.ai.agent.adapter.SpringAiToolAdapter
+				.toToolCallbacks(agentTools.toArray(new Tool[0]));
+			builder.tools(toolCallbacks);
+		}
 
-        // 委托给ReactAgent执行ReAct推理循环
-        log.debug("ReactAgent '{}' processing input: {}", getName(), input);
-        String result;
-        try {
-            var response = reactAgent.call(input);
-            // AssistantMessage支持getText()和content()两种方式获取文本
-            result = response != null ? response.getText() : "";
-        } catch (Exception e) {
-            log.error("ReactAgent '{}' execution failed: {}", getName(), e.getMessage(), e);
-            result = "Agent执行异常: " + e.getMessage();
-        }
+		// 设置最大迭代次数（从execution配置中获取，默认10）
+		int maxIterations = 10;
+		if (config.getExecution() != null && config.getExecution().getMaxConcurrency() > 0) {
+			maxIterations = Math.min(config.getExecution().getMaxConcurrency(), 20);
+		}
+		builder.compileConfig(CompileConfig.builder().recursionLimit(maxIterations).build());
 
-        // 存储到长期记忆
-        if (context.getLongTermMemory() != null) {
-            MemoryEntry entry = new MemoryEntry(UUID.randomUUID().toString(),
-                    "Q: " + input + " A: " + result, "assistant");
-            entry.setImportance(0.5);
-            context.getLongTermMemory().store(getName() + ":history", entry);
-        }
+		this.reactAgent = builder.build();
+		this.initialized = true;
+		log.info("ReactAgent '{}' initialized successfully with {} tools", getName(), agentTools.size());
+	}
 
-        return result;
-    }
+	@Override
+	public String chat(String input) {
+		if (!initialized) {
+			throw new IllegalStateException("Agent not initialized: " + getName());
+		}
 
-    @Override
-    public AgentResult execute(List<Message> messages) {
-        long startTime = System.currentTimeMillis();
-        AgentResult result = new AgentResult();
-        result.setMessageChain(new ArrayList<>(messages));
+		// 存储到短期记忆
+		if (context.getShortTermMemory() != null) {
+			context.getShortTermMemory()
+				.store(getName() + ":conversation", new MemoryEntry(UUID.randomUUID().toString(), input, "user"));
+		}
 
-        try {
-            StringBuilder outputBuilder = new StringBuilder();
-            for (Message msg : messages) {
-                if ("user".equals(msg.getRole())) {
-                    String response = chat(msg.getContent());
-                    outputBuilder.append(response).append("\n");
-                }
-            }
-            result.setSuccess(true);
-            result.setOutput(outputBuilder.toString().trim());
-        } catch (Exception e) {
-            result.setSuccess(false);
-            result.setErrorMessage(e.getMessage());
-        }
+		// 委托给ReactAgent执行ReAct推理循环
+		log.debug("ReactAgent '{}' processing input: {}", getName(), input);
+		String result;
+		try {
+			var response = reactAgent.call(input);
+			// AssistantMessage支持getText()和content()两种方式获取文本
+			result = response != null ? response.getText() : "";
+		}
+		catch (Exception e) {
+			log.error("ReactAgent '{}' execution failed: {}", getName(), e.getMessage(), e);
+			result = "Agent执行异常: " + e.getMessage();
+		}
 
-        result.setCostTimeMs(System.currentTimeMillis() - startTime);
-        return result;
-    }
+		// 存储到长期记忆
+		if (context.getLongTermMemory() != null) {
+			MemoryEntry entry = new MemoryEntry(UUID.randomUUID().toString(), "Q: " + input + " A: " + result,
+					"assistant");
+			entry.setImportance(0.5);
+			context.getLongTermMemory().store(getName() + ":history", entry);
+		}
 
-    @Override
-    public void reset() {
-        if (context.getShortTermMemory() != null) {
-            context.getShortTermMemory().clear(getName() + ":conversation");
-        }
-        log.info("Agent '{}' reset", getName());
-    }
+		return result;
+	}
 
-    @Override
-    public void destroy() {
-        reset();
-        if (context.getLongTermMemory() != null) {
-            context.getLongTermMemory().clear(getName() + ":history");
-        }
-        reactAgent = null;
-        initialized = false;
-        log.info("Agent '{}' destroyed", getName());
-    }
+	@Override
+	public AgentResult execute(List<Message> messages) {
+		long startTime = System.currentTimeMillis();
+		AgentResult result = new AgentResult();
+		result.setMessageChain(new ArrayList<>(messages));
 
-    public AgentContext getContext() {
-        return context;
-    }
+		try {
+			StringBuilder outputBuilder = new StringBuilder();
+			for (Message msg : messages) {
+				if ("user".equals(msg.getRole())) {
+					String response = chat(msg.getContent());
+					outputBuilder.append(response).append("\n");
+				}
+			}
+			result.setSuccess(true);
+			result.setOutput(outputBuilder.toString().trim());
+		}
+		catch (Exception e) {
+			result.setSuccess(false);
+			result.setErrorMessage(e.getMessage());
+		}
 
-    /**
-     * 获取内部的ReactAgent实例（用于高级场景直接操作）
-     */
-    public ReactAgent getReactAgent() {
-        return reactAgent;
-    }
+		result.setCostTimeMs(System.currentTimeMillis() - startTime);
+		return result;
+	}
+
+	@Override
+	public void reset() {
+		if (context.getShortTermMemory() != null) {
+			context.getShortTermMemory().clear(getName() + ":conversation");
+		}
+		log.info("Agent '{}' reset", getName());
+	}
+
+	@Override
+	public void destroy() {
+		reset();
+		if (context.getLongTermMemory() != null) {
+			context.getLongTermMemory().clear(getName() + ":history");
+		}
+		reactAgent = null;
+		initialized = false;
+		log.info("Agent '{}' destroyed", getName());
+	}
+
+	public AgentContext getContext() {
+		return context;
+	}
+
+	/**
+	 * 获取内部的ReactAgent实例（用于高级场景直接操作）
+	 */
+	public ReactAgent getReactAgent() {
+		return reactAgent;
+	}
+
 }

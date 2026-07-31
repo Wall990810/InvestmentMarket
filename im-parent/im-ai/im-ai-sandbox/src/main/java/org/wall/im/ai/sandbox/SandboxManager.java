@@ -10,81 +10,80 @@ import java.util.List;
 
 /**
  * 安全沙盒管理器
- * <p>封装沙盒的安全检查逻辑，提供统一的沙盒访问入口</p>
+ * <p>
+ * 封装沙盒的安全检查逻辑，提供统一的沙盒访问入口
+ * </p>
  */
 public class SandboxManager {
 
-    private static final Logger log = LoggerFactory.getLogger(SandboxManager.class);
+	private static final Logger log = LoggerFactory.getLogger(SandboxManager.class);
 
-    private final Sandbox sandbox;
-    private final SandboxConfig config;
+	private final Sandbox sandbox;
 
-    public SandboxManager(Sandbox sandbox, SandboxConfig config) {
-        this.sandbox = sandbox;
-        this.config = config;
-    }
+	private final SandboxConfig config;
 
-    /**
-     * 在沙盒中安全执行代码
-     *
-     * @param code 要执行的代码
-     * @return 执行结果
-     */
-    public SandboxResult safeExecute(String code) {
-        if (!config.isEnabled()) {
-            log.warn("Sandbox is disabled, executing without restrictions");
-            return sandbox.execute(code, null);
-        }
+	public SandboxManager(Sandbox sandbox, SandboxConfig config) {
+		this.sandbox = sandbox;
+		this.config = config;
+	}
 
-        // 预检查：代码中是否包含危险操作
-        if (containsDangerousOperations(code)) {
-            log.warn("Dangerous operations detected in code, blocking execution");
-            return SandboxResult.failure("Dangerous operations detected and blocked", -1, 0);
-        }
+	/**
+	 * 在沙盒中安全执行代码
+	 * @param code 要执行的代码
+	 * @return 执行结果
+	 */
+	public SandboxResult safeExecute(String code) {
+		if (!config.isEnabled()) {
+			log.warn("Sandbox is disabled, executing without restrictions");
+			return sandbox.execute(code, null);
+		}
 
-        return sandbox.execute(code, config.getWorkDir());
-    }
+		// 预检查：代码中是否包含危险操作
+		if (containsDangerousOperations(code)) {
+			log.warn("Dangerous operations detected in code, blocking execution");
+			return SandboxResult.failure("Dangerous operations detected and blocked", -1, 0);
+		}
 
-    /**
-     * 在沙盒中安全执行命令
-     *
-     * @param command 命令
-     * @return 执行结果
-     */
-    public SandboxResult safeExecuteCommand(String command) {
-        if (!config.isEnabled()) {
-            return sandbox.executeCommand(command);
-        }
+		return sandbox.execute(code, config.getWorkDir());
+	}
 
-        if (containsDangerousOperations(command)) {
-            log.warn("Dangerous command detected, blocking execution");
-            return SandboxResult.failure("Dangerous command blocked", -1, 0);
-        }
+	/**
+	 * 在沙盒中安全执行命令
+	 * @param command 命令
+	 * @return 执行结果
+	 */
+	public SandboxResult safeExecuteCommand(String command) {
+		if (!config.isEnabled()) {
+			return sandbox.executeCommand(command);
+		}
 
-        return sandbox.executeCommand(command);
-    }
+		if (containsDangerousOperations(command)) {
+			log.warn("Dangerous command detected, blocking execution");
+			return SandboxResult.failure("Dangerous command blocked", -1, 0);
+		}
 
-    /**
-     * 检查路径是否可访问
-     */
-    public boolean canAccess(String path) {
-        return sandbox.isPathAllowed(path);
-    }
+		return sandbox.executeCommand(command);
+	}
 
-    /**
-     * 检测危险操作
-     */
-    private boolean containsDangerousOperations(String code) {
-        if (code == null) return false;
+	/**
+	 * 检查路径是否可访问
+	 */
+	public boolean canAccess(String path) {
+		return sandbox.isPathAllowed(path);
+	}
 
-        List<String> dangerousPatterns = List.of(
-                "rm -rf /", "rm -rf ~", "mkfs", "dd if=",
-                ":(){:|:&};:", "chmod -R 777 /",
-                "wget", "curl -o", "nc -l",
-                "> /dev/sda", "format c:"
-        );
+	/**
+	 * 检测危险操作
+	 */
+	private boolean containsDangerousOperations(String code) {
+		if (code == null)
+			return false;
 
-        String lowerCode = code.toLowerCase();
-        return dangerousPatterns.stream().anyMatch(lowerCode::contains);
-    }
+		List<String> dangerousPatterns = List.of("rm -rf /", "rm -rf ~", "mkfs", "dd if=", ":(){:|:&};:",
+				"chmod -R 777 /", "wget", "curl -o", "nc -l", "> /dev/sda", "format c:");
+
+		String lowerCode = code.toLowerCase();
+		return dangerousPatterns.stream().anyMatch(lowerCode::contains);
+	}
+
 }
