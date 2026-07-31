@@ -46,7 +46,7 @@
         <!-- AI智能体框架监控模块（Langfuse） -->
         <dependency>
             <groupId>org.wall.im</groupId>
-            <artifactId>im-ai-monitor</artifactId>
+            <artifactId>im-ai-observation</artifactId>
             <version>${ai.framework.version}</version>
         </dependency>
 

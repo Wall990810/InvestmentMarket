@@ -1,1 +1,2 @@
 org.wall.im.ai.agent.skill.MarkdownSkillAutoConfiguration
+org.wall.im.ai.agent.config.AgentMonitorAutoConfiguration

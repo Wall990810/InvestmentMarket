@@ -7,6 +7,7 @@ import org.wall.im.ai.core.agent.Agent;
 import org.wall.im.ai.core.agent.AgentContext;
 import org.wall.im.ai.core.memory.MemoryStore;
 import org.wall.im.ai.core.model.AgentConfig;
+import org.wall.im.ai.core.monitor.AgentMonitor;
 import org.wall.im.ai.core.skill.Skill;
 import org.wall.im.ai.core.tool.Tool;
 
@@ -34,19 +35,23 @@ public class AgentFactory {
 
 	private final ChatModel chatModel;
 
+	private final AgentMonitor agentMonitor;
+
 	/**
 	 * 创建AgentFactory
 	 * @param skillRegistry 技能注册表
 	 * @param toolRegistry 工具注册表
 	 * @param memoryStoreFactory 记忆存储工厂
 	 * @param chatModel Spring AI ChatModel（如DashScopeChatModel）
+	 * @param agentMonitor Agent监控器
 	 */
 	public AgentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry, MemoryStoreFactory memoryStoreFactory,
-			ChatModel chatModel) {
+			ChatModel chatModel, AgentMonitor agentMonitor) {
 		this.skillRegistry = skillRegistry;
 		this.toolRegistry = toolRegistry;
 		this.memoryStoreFactory = memoryStoreFactory;
 		this.chatModel = chatModel;
+		this.agentMonitor = agentMonitor;
 	}
 
 	/**
@@ -75,8 +80,8 @@ public class AgentFactory {
 			}
 		}
 
-		// 创建DefaultAgent（传入ChatModel和工具列表）
-		DefaultAgent agent = new DefaultAgent(config, chatModel, tools);
+		// 创建DefaultAgent（传入ChatModel、工具列表和AgentMonitor）
+		DefaultAgent agent = new DefaultAgent(config, chatModel, tools, agentMonitor);
 		AgentContext context = agent.getContext();
 
 		// 组装Skills到上下文

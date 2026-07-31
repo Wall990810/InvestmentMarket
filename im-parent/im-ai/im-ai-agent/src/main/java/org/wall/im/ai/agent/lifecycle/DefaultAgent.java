@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
+import org.wall.im.ai.agent.trace.AgentTraceContext;
 import org.wall.im.ai.core.agent.Agent;
 import org.wall.im.ai.core.agent.AgentContext;
 import org.wall.im.ai.core.memory.MemoryEntry;
@@ -13,6 +14,7 @@ import org.wall.im.ai.core.memory.MemoryStore;
 import org.wall.im.ai.core.model.AgentConfig;
 import org.wall.im.ai.core.model.AgentResult;
 import org.wall.im.ai.core.model.Message;
+import org.wall.im.ai.core.monitor.AgentMonitor;
 import org.wall.im.ai.core.skill.Skill;
 import org.wall.im.ai.core.tool.Tool;
 
@@ -39,6 +41,8 @@ public class DefaultAgent implements Agent {
 
 	private final List<Tool> agentTools;
 
+	private final AgentMonitor agentMonitor;
+
 	private ReactAgent reactAgent;
 
 	private volatile boolean initialized = false;
@@ -48,12 +52,14 @@ public class DefaultAgent implements Agent {
 	 * @param config Agent配置
 	 * @param chatModel Spring AI ChatModel实例（如DashScopeChatModel）
 	 * @param tools 该Agent可用的工具列表
+	 * @param agentMonitor Agent监控器
 	 */
-	public DefaultAgent(AgentConfig config, ChatModel chatModel, List<Tool> tools) {
+	public DefaultAgent(AgentConfig config, ChatModel chatModel, List<Tool> tools, AgentMonitor agentMonitor) {
 		this.config = config;
 		this.context = new AgentContext(this);
 		this.chatModel = chatModel;
 		this.agentTools = tools != null ? new ArrayList<>(tools) : new ArrayList<>();
+		this.agentMonitor = agentMonitor;
 	}
 
 	@Override
@@ -74,7 +80,7 @@ public class DefaultAgent implements Agent {
 		}
 		log.info("Initializing ReactAgent: {}", getName());
 
-		// 构建系统提示词：优先使用description，兜底使用name
+		// 构建系统提示词：优先使用description，fallback使用name
 		String systemPrompt = config.getDescription() != null ? config.getDescription()
 				: "You are a helpful AI assistant named " + getName() + ".";
 
@@ -106,31 +112,56 @@ public class DefaultAgent implements Agent {
 			throw new IllegalStateException("Agent not initialized: " + getName());
 		}
 
-		// 存储到短期记忆
-		if (context.getShortTermMemory() != null) {
-			context.getShortTermMemory()
-				.store(getName() + ":conversation", new MemoryEntry(UUID.randomUUID().toString(), input, "user"));
+		// 设置trace上下文
+		String traceId = null;
+		if (agentMonitor != null) {
+			traceId = agentMonitor.traceStart(getName(), input);
+			AgentTraceContext.setup(traceId, agentMonitor, getName());
 		}
 
-		// 委托给ReactAgent执行ReAct推理循环
-		log.debug("ReactAgent '{}' processing input: {}", getName(), input);
+		long startTime = System.currentTimeMillis();
 		String result;
 		try {
+			// 存储到短期记忆
+			if (context.getShortTermMemory() != null) {
+				context.getShortTermMemory()
+					.store(getName() + ":conversation", new MemoryEntry(UUID.randomUUID().toString(), input, "user"));
+			}
+
+			// 委托给ReactAgent执行ReAct推理循环
+			log.debug("ReactAgent '{}' processing input: {}", getName(), input);
 			var response = reactAgent.call(input);
 			// AssistantMessage支持getText()和content()两种方式获取文本
 			result = response != null ? response.getText() : "";
+
+			// 记录成功trace
+			if (agentMonitor != null && traceId != null) {
+				long costTimeMs = System.currentTimeMillis() - startTime;
+				agentMonitor.traceEnd(traceId, getName(), result, costTimeMs, 0);
+			}
+
+			// 存储到长期记忆
+			if (context.getLongTermMemory() != null) {
+				MemoryEntry entry = new MemoryEntry(UUID.randomUUID().toString(), "Q: " + input + " A: " + result,
+						"assistant");
+				entry.setImportance(0.5);
+				context.getLongTermMemory().store(getName() + ":history", entry);
+			}
 		}
 		catch (Exception e) {
 			log.error("ReactAgent '{}' execution failed: {}", getName(), e.getMessage(), e);
 			result = "Agent执行异常: " + e.getMessage();
-		}
 
-		// 存储到长期记忆
-		if (context.getLongTermMemory() != null) {
-			MemoryEntry entry = new MemoryEntry(UUID.randomUUID().toString(), "Q: " + input + " A: " + result,
-					"assistant");
-			entry.setImportance(0.5);
-			context.getLongTermMemory().store(getName() + ":history", entry);
+			// 记录错误trace
+			if (agentMonitor != null && traceId != null) {
+				agentMonitor.traceError(traceId, getName(), e.getMessage());
+			}
+		}
+		finally {
+			// 清理trace上下文
+			if (agentMonitor != null) {
+				AgentTraceContext.clear();
+			}
 		}
 
 		return result;
