@@ -15,6 +15,7 @@ import org.wall.im.ai.agent.lifecycle.ToolRegistry;
 import org.wall.im.ai.agent.registry.AgentRegistry;
 import org.wall.im.ai.agent.skill.MarkdownSkillLoader;
 import org.wall.im.ai.core.config.AgentsDefinition;
+import org.wall.im.ai.core.monitor.AgentMonitor;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -162,8 +163,9 @@ public class AiAgentConfig {
      */
     @Bean
     public AgentFactory agentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry,
-                                     MemoryStoreFactory memoryStoreFactory, ChatModel chatModel) {
-        return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel);
+                                     MemoryStoreFactory memoryStoreFactory, ChatModel chatModel,
+                                     AgentMonitor agentMonitor) {
+        return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel, agentMonitor);
     }
 
     /**
