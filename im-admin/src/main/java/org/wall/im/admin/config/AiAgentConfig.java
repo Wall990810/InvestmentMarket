@@ -15,6 +15,7 @@ import org.wall.im.ai.agent.lifecycle.ToolRegistry;
 import org.wall.im.ai.agent.registry.AgentRegistry;
 import org.wall.im.ai.agent.skill.MarkdownSkillLoader;
 import org.wall.im.ai.core.config.AgentsDefinition;
+import org.wall.im.ai.core.monitor.AgentMonitor;
 
 import com.alibaba.cloud.ai.dashscope.api.DashScopeApi;
 import com.alibaba.cloud.ai.dashscope.chat.DashScopeChatModel;
@@ -158,49 +159,15 @@ public class AiAgentConfig {
     }
 
     /**
-	 * Agent监控器（默认 no-op，可替换为 Micrometer/Langfuse/Zipkin 实现）
-	 */
-	@Bean
-	public org.wall.im.ai.core.monitor.AgentMonitor agentMonitor() {
-		return new org.wall.im.ai.core.monitor.AgentMonitor() {
-			@Override
-			public String traceStart(String agentName, String input) {
-				return java.util.UUID.randomUUID().toString();
-			}
-			@Override
-			public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
-				log.debug("Agent {} trace {} ended, cost={}ms tokens={}", agentName, traceId, costTimeMs, tokenUsage);
-			}
-			@Override
-			public void traceError(String traceId, String agentName, String error) {
-				log.error("Agent {} trace {} error: {}", agentName, traceId, error);
-			}
-			@Override
-			public void traceToolCall(String traceId, String toolName, java.util.Map<String, Object> parameters,
-					String result, long costTimeMs) {
-				log.debug("Tool {} called in trace {}, cost={}ms", toolName, traceId, costTimeMs);
-			}
-			@Override
-			public void recordMetric(String metricName, double value, java.util.Map<String, String> tags) {
-				log.debug("Metric {} = {}", metricName, value);
-			}
-			@Override
-			public org.wall.im.ai.core.monitor.CustomMetricRegistry getCustomMetricRegistry() {
-				return null;
-			}
-		};
-	}
-
-	/**
-	 * Agent工厂
-	 * <p>注入ChatModel，用于创建基于ReactAgent的智能体实例</p>
-	 */
-	@Bean
-	public AgentFactory agentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry,
-	                                 MemoryStoreFactory memoryStoreFactory, ChatModel chatModel,
-	                                 org.wall.im.ai.core.monitor.AgentMonitor agentMonitor) {
-		return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel, agentMonitor);
-	}
+     * Agent工厂
+     * <p>注入ChatModel，用于创建基于ReactAgent的智能体实例</p>
+     */
+    @Bean
+    public AgentFactory agentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry,
+                                     MemoryStoreFactory memoryStoreFactory, ChatModel chatModel,
+                                     AgentMonitor agentMonitor) {
+        return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel, agentMonitor);
+    }
 
     /**
      * 生命周期管理器
