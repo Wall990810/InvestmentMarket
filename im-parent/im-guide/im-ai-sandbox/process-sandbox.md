@@ -1,57 +1,136 @@
-← 返回索引
+← [返回索引](../README.md)
 
-# ProcessSandbox 详解
+# ProcessSandbox · 本地进程级沙盒
 
-源码：[ProcessSandbox.java](file:///d:/IdeaProject/InvestmentMarket/im-parent/im-ai/im-ai-sandbox/src/main/java/org/wall/im/ai/sandbox/ProcessSandbox.java)
+`ProcessSandbox` 是最基础的沙盒实现：基于 JDK `ProcessBuilder` + 宿主系统的 `bash` 解释器执行命令和代码，仅提供路径白名单、超时、关键字黑名单三级防护，**未做文件系统/资源隔离**。
 
-`ProcessSandbox` 是基于 OS 进程的隔离实现，是 `Sandbox` SPI 的唯一具体实现。
+源码：[ProcessSandbox.java](file:///c:/Users/钟世超/IdeaProjects/InvestmentMarket/im-parent/im-ai/im-ai-sandbox/src/main/java/org/wall/im/ai/sandbox/local/ProcessSandbox.java)
+工厂：[LocalProcessSandboxFactory.java](file:///c:/Users/钟世超/IdeaProjects/InvestmentMarket/im-parent/im-ai/im-ai-sandbox/src/main/java/org/wall/im/ai/sandbox/local/LocalProcessSandboxFactory.java)
 
-## 初始化（initialize）
+---
 
-- 幂等：通过 `volatile boolean initialized` 保证只初始化一次；
-- 工作目录确定规则：
-  - 若 `config.getWorkDir()` 非空，则将其解析为绝对路径并 `normalize()`；
-  - 否则调用 `Files.createTempDirectory("ai-sandbox-")` 创建临时目录；
-- 随后 `Files.createDirectories(...)` 确保目录存在，标记 `initialized=true` 并记录日志。
+## 适用场景
 
-> 未初始化即调用 `execute` / `executeCommand` 会抛 `IllegalStateException("Sandbox not initialized")`（由 `ensureInitialized()` 触发）。
+| 场景 | 是否推荐 | 备注 |
+| --- | --- | --- |
+| 开发调试、可信脚本 | ✅ | 启动开销最小（毫秒级） |
+| 生产不可信 Agent 脚本 | ❌ | 无法阻止进程逃逸、磁盘爆炸、root 写入 |
+| 跨平台一致性执行 | ⚠️ | 依赖宿主机 bash + 环境变量，不同机器结果可能不同 |
+| 旧代码 0 改动迁移 | ✅ | 完全兼容老 2 参构造签名（见 [sandbox-manager.md](sandbox-manager.md)） |
 
-## 工作目录与路径限制（isPathAllowed）
+对比：[DockerLocalSandbox](docker-sandbox.md) 与 [RemoteSandbox](remote-sandbox.md) 的隔离更强。
 
-路径准入逻辑：
+---
 
-1. 若 `config.isEnabled() == false`，直接返回 `true`（沙盒关闭，全部放行）；
-2. 将目标路径 `toAbsolutePath().normalize()`；
-3. 若路径以 `sandboxWorkDir` 为前缀，允许；
-4. 否则遍历 `config.getAllowedPaths()`，命中任一白名单前缀即允许；
-5. 都未命中则返回 `false`，异常时也返回 `false` 并打印告警日志。
+## 执行机制
 
-## 执行脚本（execute）
+```
+SandboxConfig + SandboxContext
+          │
+          ▼
+  ProcessSandbox.initialize()
+   - 校验 workDirectory 为绝对路径
+   - 校验 PATH 中存在 bash
+          │
+          ▼
+  execute(code, language=bash)
+   - ProcessBuilder("bash", "-c", "cd <workDirectory> && <code>")
+   - 继承 HOME、TMPDIR、PATH
+   - 追加 config.envVars（若有）
+   - CompletableFuture + orTimeout(maxExecutionTimeSec)
+   - waitFor() → 取 stdout、stderr、exitCode
+          │
+          ▼
+  executeCommand(cmd, args)
+   - ProcessBuilder(command, args...)
+   - directory(config.workDirectory)
+   - 环境变量处理同上
+          │
+          ▼
+  isPathAllowed(path)
+   - path.startsWith(workDirectory)
+   - 或 path ∈ allowedPaths
+   - 两者任一成立返回 true
+          │
+          ▼
+  destroy()       → 空操作（进程沙盒无持久资源）
+```
 
-`execute(String code, String workDir)` 的执行流程：
+### 执行超时与中断
 
-1. `ensureInitialized()`；
-2. `targetDir = workDir != null ? workDir : sandboxWorkDir.toString()`；若该目录未通过 `isPathAllowed`，直接返回 `failure("Path not allowed in sandbox: ...")`；
-3. 将 `code` 写入临时脚本文件 `script_<timestamp>.sh`（位于 `sandboxWorkDir`）；
-4. 构造 `ProcessBuilder("bash", scriptFile)`，`.directory(targetDir)`，`redirectErrorStream(false)`；
-5. **清空环境变量**：`pb.environment().clear()`，仅注入 `HOME` 与 `TMPDIR`，均指向 `sandboxWorkDir`；
-6. 启动进程，`process.waitFor(config.getMaxExecutionTime(), TimeUnit.SECONDS)`：
-   - 超时则 `destroyForcibly()` 并返回 `failure("Execution timed out", -1, elapsed)`；
-7. 读取 stdout / stderr，获取 `exitCode`；
-8. 删除临时脚本文件；
-9. `exitCode == 0` 返回 `success(stdout, elapsed)`，否则返回 `failure(stderr, exitCode, elapsed)`；
-10. 任何异常都被捕获并转为 `failure(e.getMessage(), -1, elapsed)`。
+`ProcessSandbox` 使用 `process.onExit().orTimeout(maxExecutionTimeSec, SECONDS)` 实现超时；超时抛 `TimeoutException`：
+- 捕获后对 Process 调用 `destroyForcibly()`
+- 返回 `SandboxResult.failure("Execution timed out after <N> seconds")`
 
-## 执行命令（executeCommand）
+---
 
-`executeCommand(String command)` 与 `execute` 类似，区别在于：
+## 环境变量注入
 
-- 直接使用 `ProcessBuilder("bash", "-c", command)`，不写入脚本文件；
-- 工作目录固定为 `sandboxWorkDir`（不接受外部 `workDir` 参数）；
-- 同样清空环境变量、仅保留 `HOME` / `TMPDIR`、应用 `maxExecutionTime` 超时控制。
+`ProcessSandbox.initialize()` 读取 `config.getEnvVars()`：
 
-## 销毁（destroy）
+1. 先从宿主机 `System.getenv()` 保留 **HOME、TMPDIR、PATH、LANG** 四个键（保持 OS 可执行搜索/用户家目录默认）
+2. 再把 `envVars` 里的 key-value 追加到 process builder（**不覆盖 1 中已有键**，避免破坏 bash 启动）
+3. 若 `envVars == null`，不做任何覆盖；此时等价旧行为
 
-- 递归遍历 `sandboxWorkDir`，按逆序删除所有文件与子目录；
-- 将 `initialized` 置为 `false`，允许再次 `initialize()` 重建；
-- 删除失败仅打印告警日志，不抛异常。
+> 若希望沙盒里能看到的环境变量为 **完全自定义的封闭集合**（不继承宿主），请改用 `DockerLocalSandbox` 并在创建镜像时只注入 ENV。
+
+---
+
+## Windows 兼容性说明
+
+`ProcessSandbox` 依赖 `bash` 解释器，在 Windows 上需要：
+- 安装 WSL2 的 Ubuntu 发行版（推荐）并把 `<wsl>/bin` 放进 PATH；或
+- 安装 Git for Windows，使用 Git Bash。
+
+若 `bash --version` 在 cmd/PowerShell 中执行失败，ProcessSandbox 会在 `initialize` 时报 `bash not found`。需要强 Windows 支持请使用 `DockerLocalSandbox`（基于 Linux 容器镜像，与平台无关）。
+
+---
+
+## 已知风险（与 Docker/Remote 的对比）
+
+下表对比三种实现的隔离维度：
+
+| 防护维度 | ProcessSandbox | DockerLocalSandbox | RemoteSandbox |
+| --- | --- | --- | --- |
+| 路径访问白名单 | ✅ 粗粒度前缀 | ✅ 通过容器挂载目录限制 | ✅ 由远端服务负责 |
+| 命令关键字黑名单 | ✅（SandboxManager 层） | ✅（SandboxManager 层） | ✅（SandboxManager 层 + 远端双保险） |
+| CPU 限制 | ❌ 仅靠超时 | ✅ `--cpus` | ✅ 由远端负责 |
+| 内存限制 | ❌ 仅靠旧字段 | ✅ `--memory` / `--memory-swap` | ✅ 由远端负责 |
+| 进程数限制 | ❌ | ✅ `--pids-limit` | ✅ 由远端负责 |
+| 网络隔离 | ❌（策略层关键字） | ✅ 默认 `--network=none` | ✅ 由远端负责 |
+| 文件系统隔离 | ❌（宿主磁盘共享） | ✅ `tmpfs` 临时 + 只读卷 | ✅ 由远端负责 |
+| 环境变量隔离 | ⚠️ 继承宿主 4 个核心键 | ✅ 容器内独立 | ✅ 远端环境独立 |
+| 启动开销 | ~5-50 ms | ~500-3000 ms | 一次网络 RTT（创建） |
+
+---
+
+## 与旧版迁移注意事项
+
+| 旧版（单实现时期） | 新版（本实现） |
+| --- | --- |
+| 包路径 `org.wall.im.ai.sandbox.ProcessSandbox` | 包路径已改为 `org.wall.im.ai.sandbox.local.ProcessSandbox` |
+| `SandboxManager(Sandbox, SandboxConfig)` 两参构造内部为硬编码黑名单 | 构造器语义保持不变，内部改为注入 DefaultCommandPolicy(restrict=false) + 空 listeners + ownedByManager=false |
+| 无 envVars 支持 | 新增 envVars 字段，非空时会追加 4 个默认环境变量 |
+
+直接把源码 import 改成新包路径即可，无其他 API 变化。
+
+---
+
+## 快速上手
+
+```java
+SandboxConfig config = new SandboxConfig()
+    .setWorkDirectory("/tmp/im-work")
+    .setMaxExecutionTimeSec(30)
+    .setMaxMemoryMb(512)
+    .setAllowedPaths(List.of("/home/me/data"));
+
+Sandbox sandbox = new ProcessSandbox();
+SandboxManager mgr = new SandboxManager(sandbox, config); // 兼容 2 参
+
+SandboxResult r1 = mgr.executeCode("echo hello", "bash");
+SandboxResult r2 = mgr.executeCommand("ls", List.of("-la"));
+mgr.close();
+```
+
+更多示例见 [integration-examples.md](integration-examples.md)。

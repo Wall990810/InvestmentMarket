@@ -1,4 +1,4 @@
-package org.wall.im.ai.sandbox;
+package org.wall.im.ai.sandbox.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,7 +6,8 @@ import org.wall.im.ai.core.model.SandboxConfig;
 import org.wall.im.ai.core.sandbox.Sandbox;
 import org.wall.im.ai.core.sandbox.SandboxResult;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 进程隔离沙盒实现
  * <p>
- * 通过进程级别隔离限制Agent运行时的文件访问和执行环境
+ * 通过进程级别隔离限制Agent运行时的文件访问和执行环境。 基于宿主 {@code bash} 与 {@link ProcessBuilder}，弱隔离， 适合低风险场景或无
+ * Docker 环境。强隔离场景请使用 {@link DockerLocalSandbox}。
  * </p>
  */
 public class ProcessSandbox implements Sandbox {

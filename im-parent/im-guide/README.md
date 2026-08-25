@@ -86,66 +86,18 @@
 
 | 功能块 | 说明 | 文档 |
 | --- | --- | --- |
-| Sandbox SPI | Sandbox / SandboxResult / SandboxConfig 接口回顾 | [sandbox-spi.md](im-ai-sandbox/sandbox-spi.md) |
-| ProcessSandbox | 进程级沙盒实现（工作目录限制、危险操作拦截） | [process-sandbox.md](im-ai-sandbox/process-sandbox.md) |
-| SandboxManager | 沙盒管理器入口与调用路由 | [sandbox-manager.md](im-ai-sandbox/sandbox-manager.md) |
-| 配置指南 | YAML + Java Bean 配置示例 | [configuration-guide.md](im-ai-sandbox/configuration-guide.md) |
-| 使用示例 | execute/canAccess/destroy 完整示例 | [integration-examples.md](im-ai-sandbox/integration-examples.md) |
-| 安全注意事项 | 8 条安全要点与已知风险 | [security-notes.md](im-ai-sandbox/security-notes.md) |
+| Sandbox SPI 全集 | Sandbox/Result/Config/Type/Limits/Context/Factory/Listener 与 CommandPolicy 策略体系 | [sandbox-spi.md](im-ai-sandbox/sandbox-spi.md) |
+| ProcessSandbox | 本地进程级沙盒实现（ProcessBuilder + bash，弱隔离） | [process-sandbox.md](im-ai-sandbox/process-sandbox.md) |
+| DockerLocalSandbox | 本地 Docker 容器沙盒实现（CPU/内存/进程/网络/tmpfs 强隔离） | [docker-sandbox.md](im-ai-sandbox/docker-sandbox.md) |
+| RemoteSandbox | 远端 HTTP 沙盒客户端 + REST 协议约定 | [remote-sandbox.md](im-ai-sandbox/remote-sandbox.md) |
+| SandboxManager | 统一入口（危险操作预检 + 策略注入 + 生命周期钩子 + Registry 路由） | [sandbox-manager.md](im-ai-sandbox/sandbox-manager.md) |
+| 配置指南 | SandboxConfig、SandboxProperties YAML、Spring Boot 自动装配 | [configuration-guide.md](im-ai-sandbox/configuration-guide.md) |
+| 使用示例 | 兼容场景 / Docker 强隔离 / 远端 HTTP / 策略链与监听器 | [integration-examples.md](im-ai-sandbox/integration-examples.md) |
+| 扩展指南 | 自定义 SandboxFactory、CommandPolicy 链、DockerCommandExecutor | [extension-guide.md](im-ai-sandbox/extension-guide.md) |
+| 安全注意事项 | 12 条安全要点与已知风险 | [security-notes.md](im-ai-sandbox/security-notes.md) |
 
 ---
 
 ### 应用与可观测性
 
 #### im-admin · 投资助手示例应用
-
-> 模块总览：[im-admin/overview.md](im-admin/overview.md)
-
-| 功能块 | 说明 | 文档 |
-| --- | --- | --- |
-| 应用入口 | AdminApplication + AiAgentConfig 配置类 | [application-entry.md](im-admin/application-entry.md) |
-| 业务服务 | InvestmentAgentService 公共 API 与使用示例 | [investment-agent-service.md](im-admin/investment-agent-service.md) |
-| 业务技能 | InvestmentAnalysisSkill / PortfolioRecommendSkill | [business-skills.md](im-admin/business-skills.md) |
-| 业务工具 | MarketDataTool / RiskAssessmentTool | [business-tools.md](im-admin/business-tools.md) |
-| Agent 配置 | agents/investment-advisor.yml 详解 | [agent-config-reference.md](im-admin/agent-config-reference.md) |
-| Markdown 技能 | skills/*.md 技能文件说明 | [skills-markdown-reference.md](im-admin/skills-markdown-reference.md) |
-| 应用配置 | application.yml 关键配置 | [application-config.md](im-admin/application-config.md) |
-| 启动与测试 | 构建、启动、示例请求 | [run-and-test.md](im-admin/run-and-test.md) |
-
-#### im-observation · 可观测性聚合应用
-
-> 模块总览：[im-observation/overview.md](im-observation/overview.md)
-
-| 功能块 | 说明 | 文档 |
-| --- | --- | --- |
-| 应用入口 | ImObservationApplication 启动类 | [application-entry.md](im-observation/application-entry.md) |
-| 配置指南 | application.properties 与启动方式 | [configuration-guide.md](im-observation/configuration-guide.md) |
-| 与监控模块关系 | 与 im-ai-observation 的组件对应 | [relation-to-im-ai-observation.md](im-observation/relation-to-im-ai-observation.md) |
-| 运行方式 | 开发调试 / 打包部署 / 测试验证 | [run-and-test.md](im-observation/run-and-test.md) |
-
----
-
-### 预留模块（待实现）
-
-下列模块目前仅包含 `pom.xml`，尚无源代码，已在指南中标注其预设角色与后续规划：
-
-| 模块 | 预设角色 | 指南 |
-| --- | --- | --- |
-| `im-base` | 基础工具类与底层支撑 | [usage-guide.md](im-base/usage-guide.md) |
-| `im-common` | 跨模块通用工具与常量 | [usage-guide.md](im-common/usage-guide.md) |
-| `im-core` | 业务领域核心模型与领域服务 | [usage-guide.md](im-core/usage-guide.md) |
-| `im-starter` | Spring Boot Starter 聚合模块 | [usage-guide.md](im-starter/usage-guide.md) |
-| `im-quant-factor` | 量化因子计算 | [usage-guide.md](im-quant-factor/usage-guide.md) |
-
----
-
-## 模块定位
-
-`im-guide` 自身是一个 `packaging=pom` 的文档模块，不产出任何 Java 产物（已禁用 jar / source / javadoc 生成）。它被注册在 `im-parent` 的 `<modules>` 列表中，随主构建一同构建，便于在 IDE 与 Maven 站点中统一浏览。
-
-## 阅读建议
-
-1. **初次接入**：先阅读 [im-ai-core/overview.md](im-ai-core/overview.md)，按顺序了解 Agent → Skill/Tool → Memory → Monitor → Sandbox 各契约。
-2. **运行时与配置**：阅读 [im-ai-agent/overview.md](im-ai-agent/overview.md)，重点关注 `agents-yml-reference.md` 与 `markdown-skill-loader.md`。
-3. **端到端示例**：参考 [im-admin/overview.md](im-admin/overview.md) 中完整的投资助手示例，串联上述模块。
-4. **进阶能力**：按需阅读 harness / observation / memory / sandbox 各子文档。

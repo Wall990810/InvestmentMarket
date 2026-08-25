@@ -30,7 +30,9 @@
         <slf4j.version>2.0.13</slf4j.version>
         <logback.version>1.5.13</logback.version>
         <junit.version>5.10.2</junit.version>
-        <mockito.version>5.11.0</mockito.version>
+        <!-- JDK 26 兼容：5.11.0 的 byte-buddy 不支持 JDK 26 class 文件，
+             inline MockMaker 初始化失败；5.23.0 配 byte-buddy 1.18.x 支持 -->
+        <mockito.version>5.23.0</mockito.version>
         <spring.ai.alibaba.version>1.1.2.3</spring.ai.alibaba.version>
         <spring.ai.version>1.0.0-M6</spring.ai.version>
         <langfuse.java.version>0.2.0</langfuse.java.version>

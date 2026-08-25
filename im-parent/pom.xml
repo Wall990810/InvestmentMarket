@@ -73,6 +73,18 @@
         <okhttp3.version>4.12.0</okhttp3.version>
         <json-unit-assertj.version>4.1.0</json-unit-assertj.version>
 
+        <!-- JDK 26 兼容：覆盖 Spring Boot 3.5.15 BOM 锁定的 mockito 5.11.0 / byte-buddy 1.17.8，
+             旧版本不支持 JDK 26 class 文件，导致 inline MockMaker 初始化失败 -->
+        <mockito.version>5.23.0</mockito.version>
+        <byte-buddy.version>1.18.10</byte-buddy.version>
+        <!-- surefireArgLine 此前在 build/surefire 配置(pom.xml:192)中引用但未定义，
+             补全 JDK 26 下 Mockito inline mockmaker 所需配置：
+             1) javaagent 显式注入 byte-buddy-agent（JDK 26 禁用了 byte-buddy 自附加机制，
+                报错 "Could not self-attach to current VM"，必须显式 javaagent，见 Mockito 文档
+                https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3）
+             2) add-opens 放开内部包访问 -->
+        <surefireArgLine>-javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED</surefireArgLine>
+
         <!-- plugin versions -->
         <antlr.version>4.13.1</antlr.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
@@ -585,6 +597,28 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
+            </dependency>
+            <!-- Override mockito/byte-buddy for JDK 26 support: Spring Boot 3.5.15 BOM pins
+                 mockito 5.11.0 / byte-buddy 1.17.8 which cannot parse JDK 26 class files,
+                 causing inline MockMaker init failure. Property overrides do not take effect
+                 under BOM <import> scope, so declare explicitly here. -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <!-- 使用字面版本而非 ${mockito.version}：import-BOM 模式下父 POM 的
+                     mockito.version 属性会被 Spring Boot BOM 的 5.11.0 覆盖，
+                     字面值可确保强制升级到 JDK 26 兼容版本 -->
+                <version>5.23.0</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>${byte-buddy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>${byte-buddy.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
