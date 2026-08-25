@@ -13,6 +13,7 @@
     <artifactId>im-quant</artifactId>
     <packaging>pom</packaging>
     <modules>
+        <module>im-quant-core</module>
         <module>im-quant-factor</module>
     </modules>
 

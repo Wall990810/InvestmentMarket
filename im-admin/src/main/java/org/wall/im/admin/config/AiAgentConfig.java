@@ -79,14 +79,15 @@ public class AiAgentConfig {
     }
 
     /**
-     * 工具注册表：注册行情查询和风险评估工具
+     * 工具注册表：注册行情查询、风险评估与量化因子查询工具
      */
     @Bean
-    public ToolRegistry toolRegistry() {
+    public ToolRegistry toolRegistry(org.wall.im.quant.factor.ai.FactorQueryTool factorQueryTool) {
         ToolRegistry registry = new ToolRegistry();
         registry.register(new org.wall.im.admin.agent.tool.MarketDataTool());
         registry.register(new org.wall.im.admin.agent.tool.RiskAssessmentTool());
-        log.info("已注册投资分析工具: market-data-tool, risk-assessment-tool");
+        registry.register(factorQueryTool);
+        log.info("已注册投资分析工具: market-data-tool, risk-assessment-tool, factor-query");
         return registry;
     }
 
@@ -157,14 +158,49 @@ public class AiAgentConfig {
     }
 
     /**
-     * Agent工厂
-     * <p>注入ChatModel，用于创建基于ReactAgent的智能体实例</p>
-     */
-    @Bean
-    public AgentFactory agentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry,
-                                     MemoryStoreFactory memoryStoreFactory, ChatModel chatModel) {
-        return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel);
-    }
+	 * Agent监控器（默认 no-op，可替换为 Micrometer/Langfuse/Zipkin 实现）
+	 */
+	@Bean
+	public org.wall.im.ai.core.monitor.AgentMonitor agentMonitor() {
+		return new org.wall.im.ai.core.monitor.AgentMonitor() {
+			@Override
+			public String traceStart(String agentName, String input) {
+				return java.util.UUID.randomUUID().toString();
+			}
+			@Override
+			public void traceEnd(String traceId, String agentName, String output, long costTimeMs, int tokenUsage) {
+				log.debug("Agent {} trace {} ended, cost={}ms tokens={}", agentName, traceId, costTimeMs, tokenUsage);
+			}
+			@Override
+			public void traceError(String traceId, String agentName, String error) {
+				log.error("Agent {} trace {} error: {}", agentName, traceId, error);
+			}
+			@Override
+			public void traceToolCall(String traceId, String toolName, java.util.Map<String, Object> parameters,
+					String result, long costTimeMs) {
+				log.debug("Tool {} called in trace {}, cost={}ms", toolName, traceId, costTimeMs);
+			}
+			@Override
+			public void recordMetric(String metricName, double value, java.util.Map<String, String> tags) {
+				log.debug("Metric {} = {}", metricName, value);
+			}
+			@Override
+			public org.wall.im.ai.core.monitor.CustomMetricRegistry getCustomMetricRegistry() {
+				return null;
+			}
+		};
+	}
+
+	/**
+	 * Agent工厂
+	 * <p>注入ChatModel，用于创建基于ReactAgent的智能体实例</p>
+	 */
+	@Bean
+	public AgentFactory agentFactory(SkillRegistry skillRegistry, ToolRegistry toolRegistry,
+	                                 MemoryStoreFactory memoryStoreFactory, ChatModel chatModel,
+	                                 org.wall.im.ai.core.monitor.AgentMonitor agentMonitor) {
+		return new AgentFactory(skillRegistry, toolRegistry, memoryStoreFactory, chatModel, agentMonitor);
+	}
 
     /**
      * 生命周期管理器

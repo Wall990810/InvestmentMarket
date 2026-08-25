@@ -10,8 +10,8 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>im-quant-factor</artifactId>
-    <description>InvestmentMarket key factor implementations and AI Tool integration.</description>
+    <artifactId>im-quant-core</artifactId>
+    <description>InvestmentMarket Quant Foundation: factor abstraction, engine, registry and processor chain.</description>
 
     <properties>
         <maven.compiler.source>26</maven.compiler.source>
@@ -21,24 +21,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.wall.im</groupId>
-            <artifactId>im-quant-core</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <!-- AI 桥接：仅用于 FactorQueryTool 实现 org.wall.im.ai.core.tool.Tool -->
-        <dependency>
-            <groupId>org.wall.im</groupId>
-            <artifactId>im-ai-core</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-autoconfigure</artifactId>
-            <optional>true</optional>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

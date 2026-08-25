@@ -47,6 +47,7 @@ agents:
     tools:
       - market-data-tool
       - risk-assessment-tool
+      - factor-query
     memory:
       shortTermStore: memory
       longTermStore: memory

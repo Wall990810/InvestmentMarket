@@ -120,7 +120,8 @@ class AgentFrameworkIntegrationTest {
 
 			// 3. 创建Agent工厂并创建Agent
 			MemoryStoreFactory memFactory = storeType -> memoryStore;
-			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class));
+			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class),
+					mock(org.wall.im.ai.core.monitor.AgentMonitor.class));
 
 			Agent agent = factory.create(definition.getAgents().get(0));
 			agent.initialize();
@@ -165,7 +166,8 @@ class AgentFrameworkIntegrationTest {
 			AgentConfigParser.applyDefaults(definition);
 
 			MemoryStoreFactory memFactory = storeType -> new InMemoryStore();
-			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class));
+			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class),
+					mock(org.wall.im.ai.core.monitor.AgentMonitor.class));
 
 			// 创建并注册所有Agent
 			for (var config : definition.getAgents()) {
@@ -208,7 +210,8 @@ class AgentFrameworkIntegrationTest {
 			AgentConfigParser parser = new AgentConfigParser();
 			AgentsDefinition definition = parser.parseFromString(yaml);
 			MemoryStoreFactory memFactory = storeType -> new InMemoryStore();
-			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class));
+			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class),
+					mock(org.wall.im.ai.core.monitor.AgentMonitor.class));
 
 			Agent agent = factory.create(definition.getAgents().get(0));
 			agent.initialize();
@@ -334,7 +337,8 @@ class AgentFrameworkIntegrationTest {
 			AgentsDefinition def = parser.parseFromString(yaml);
 
 			MemoryStoreFactory memFactory = storeType -> new InMemoryStore();
-			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class));
+			AgentFactory factory = new AgentFactory(skillRegistry, toolRegistry, memFactory, mock(ChatModel.class),
+					mock(org.wall.im.ai.core.monitor.AgentMonitor.class));
 			AgentLifecycleManager lifecycleManager = new AgentLifecycleManager(registry, factory);
 
 			// 添加监听器

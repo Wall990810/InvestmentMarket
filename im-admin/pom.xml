@@ -89,6 +89,13 @@
             <version>${ai.framework.version}</version>
         </dependency>
 
+        <!-- 量化因子模块：暴露 factor-query 工具供投资顾问 Agent 调用 -->
+        <dependency>
+            <groupId>org.wall.im</groupId>
+            <artifactId>im-quant-factor</artifactId>
+            <version>${ai.framework.version}</version>
+        </dependency>
+
         <!-- Spring AI Alibaba DashScope（通义千问模型支持） -->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>

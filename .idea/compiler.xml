@@ -9,9 +9,10 @@
         <module name="im-ai-agent" />
         <module name="im-ai-core" />
         <module name="im-ai-harness" />
+        <module name="im-quant-core" />
         <module name="im-observation" />
-        <module name="im-ai-observation" />
         <module name="im-ai-sandbox" />
+        <module name="im-ai-observation" />
         <module name="im-ai-memory" />
         <module name="im-quant-factor" />
         <module name="im-base" />
@@ -23,8 +24,8 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$PROJECT_DIR$/../../MavenRepository/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
-          <entry name="$PROJECT_DIR$/../../MavenRepository/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
+          <entry name="A:/maven/maven-repository/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="A:/maven/maven-repository/org/springframework/boot/spring-boot-configuration-processor/4.1.0/spring-boot-configuration-processor-4.1.0.jar" />
         </processorPath>
         <module name="im-admin" />
       </profile>
@@ -36,6 +37,7 @@
       <module name="base" target="26" />
       <module name="common" target="26" />
       <module name="core" target="26" />
+      <module name="im-ai-monitor" target="26" />
       <module name="quant" target="26" />
       <module name="quant.factor" target="26" />
     </bytecodeTargetLevel>
@@ -63,6 +65,7 @@
       <module name="im-observation" options="-parameters" />
       <module name="im-parent" options="-parameters" />
       <module name="im-quant" options="-parameters" />
+      <module name="im-quant-core" options="-parameters" />
       <module name="im-quant-factor" options="-parameters" />
       <module name="im-starter" options="-parameters" />
       <module name="quant" options="-parameters" />
