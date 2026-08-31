@@ -1,5 +1,6 @@
 package org.wall.im.admin.agent.tool;
 
+import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wall.im.ai.core.tool.Tool;
@@ -44,14 +45,19 @@ public class RiskAssessmentTool implements Tool {
         log.info("执行风险评估: portfolioId={}, riskLevel={}", portfolioId, riskLevel);
 
         // 实际实现中应基于历史数据进行蒙特卡洛模拟或参数法计算
-        return String.format(
-                "{\"portfolioId\":\"%s\",\"riskLevel\":\"%s\"," +
-                "\"var95\":-0.032,\"var99\":-0.058," +
-                "\"maxDrawdown\":-0.115,\"sharpeRatio\":1.42," +
-                "\"sortinoRatio\":1.89,\"volatility\":0.156," +
-                "\"beta\":0.85,\"alpha\":0.023," +
-                "\"riskScore\":62,\"riskLabel\":\"中等风险\"}",
-                portfolioId, riskLevel
-        );
+        JSONObject result = new JSONObject();
+        result.put("portfolioId", portfolioId);
+        result.put("riskLevel", riskLevel);
+        result.put("var95", -0.032);
+        result.put("var99", -0.058);
+        result.put("maxDrawdown", -0.115);
+        result.put("sharpeRatio", 1.42);
+        result.put("sortinoRatio", 1.89);
+        result.put("volatility", 0.156);
+        result.put("beta", 0.85);
+        result.put("alpha", 0.023);
+        result.put("riskScore", 62);
+        result.put("riskLabel", "中等风险");
+        return result.toJSONString();
     }
 }

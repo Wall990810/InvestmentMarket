@@ -1,5 +1,6 @@
 package org.wall.im.admin.agent.tool;
 
+import com.alibaba.fastjson2.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.wall.im.ai.core.tool.Tool;
@@ -47,12 +48,18 @@ public class MarketDataTool implements Tool {
         log.info("查询行情数据: symbol={}, market={}", symbol, market);
 
         // 实际实现中应调用行情数据API（如Tushare、Wind等）
-        return String.format(
-                "{\"symbol\":\"%s\",\"market\":\"%s\",\"date\":\"%s\"," +
-                "\"open\":1850.00,\"high\":1872.50,\"low\":1845.20,\"close\":1865.80," +
-                "\"volume\":3256000,\"amount\":6045000000," +
-                "\"change\":1.25,\"changePercent\":0.067}",
-                symbol, market, LocalDate.now()
-        );
+        JSONObject result = new JSONObject();
+        result.put("symbol", symbol);
+        result.put("market", market);
+        result.put("date", LocalDate.now().toString());
+        result.put("open", 1850.00);
+        result.put("high", 1872.50);
+        result.put("low", 1845.20);
+        result.put("close", 1865.80);
+        result.put("volume", 3256000);
+        result.put("amount", 6045000000L);
+        result.put("change", 1.25);
+        result.put("changePercent", 0.067);
+        return result.toJSONString();
     }
 }
